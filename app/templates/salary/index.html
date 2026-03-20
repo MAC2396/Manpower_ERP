@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% block page_title %}
+    Salary Register — {{ month_name }} {{ year }}
+{% endblock %}
+{% block content %}
+
+<!-- Filter -->
+<div class="content-card mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Month</label>
+            <select name="month"
+                    class="form-select form-select-sm">
+                {% for m in range(1,13) %}
+                {% set mnames = {1:'January',2:'February',
+                    3:'March',4:'April',5:'May',6:'June',
+                    7:'July',8:'August',9:'September',
+                    10:'October',11:'November',
+                    12:'December'} %}
+                <option value="{{ m }}"
+                    {{ 'selected' if m == month }}>
+                    {{ mnames[m] }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Year</label>
+            <input type="number" name="year"
+                   class="form-control form-control-sm"
+                   value="{{ year }}" style="width:90px">
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">
+                Company
+            </label>
+            <select name="company_id"
+                    class="form-select form-select-sm">
+                <option value="">All Companies</option>
+                {% for c in companies %}
+                <option value="{{ c.id }}"
+                    {{ 'selected' if c.id|string == company_id }}>
+                    {{ c.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i> Filter
+            </button>
+        </div>
+        <div class="col-auto ms-auto d-flex gap-2">
+            <a href="/salary/generate"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-cash-stack"></i>
+                Generate Salary
+            </a>
+            <a href="/salary/export-payment-excel?month={{ month }}&year={{ year }}&company_id={{ company_id }}"
+               class="btn btn-outline-success btn-sm">
+                <i class="bi bi-download"></i> Export
+            </a>
+            <a href="/salary/payment-sheet?month={{ month }}&year={{ year }}&company_id={{ company_id }}"
+               class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-credit-card"></i>
+                Payment Sheet
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Summary Cards -->
+{% if salaries %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#1a237e">
+            <div class="text-muted small">Total Employees</div>
+            <div class="number text-primary">
+                {{ total_workers }}
+            </div>
+            <div class="small text-muted">
+                {{ month_name }} {{ year }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#2e7d32">
+            <div class="text-muted small">Total Gross</div>
+            <div class="number text-success"
+                 style="font-size:20px">
+                ₹{{ '%.0f'|format(total_gross) }}
+            </div>
+            <div class="small text-muted">Before deductions</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#c62828">
+            <div class="text-muted small">
+                Total Deductions
+            </div>
+            <div class="number text-danger"
+                 style="font-size:20px">
+                ₹{{ '%.0f'|format(total_pf + total_esic) }}
+            </div>
+            <div class="small text-muted">PF + ESIC</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#1565c0">
+            <div class="text-muted small">Total Net Pay</div>
+            <div class="number text-primary"
+                 style="font-size:20px">
+                ₹{{ '%.0f'|format(total_net) }}
+            </div>
+            <div class="small text-muted">
+                {% if payment and payment.status == 'paid' %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i>
+                        Paid
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">
+                        Pending Payment
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pay Salary Button -->
+{% if salaries and company_id and
+      (not payment or payment.status != 'paid') %}
+<div class="content-card mb-3 py-3">
+    <form method="POST" action="/salary/pay"
+          id="payForm">
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="year"  value="{{ year }}">
+        <input type="hidden" name="company_id"
+               value="{{ company_id }}">
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <div class="fw-semibold">
+                    Pay Salary for
+                    {{ companies|selectattr('id','equalto',
+                       company_id|int)|first|attr('name')
+                       if company_id else 'All' }}
+                </div>
+                <small class="text-muted">
+                    {{ total_workers }} employees |
+                    Total Net Pay:
+                    ₹{{ '%.2f'|format(total_net) }}
+                </small>
+            </div>
+            <div class="ms-auto d-flex gap-2">
+                <input type="text" name="notes"
+                       class="form-control form-control-sm"
+                       placeholder="Payment notes (optional)"
+                       style="width:220px">
+                <button type="submit"
+                        class="btn btn-success"
+                        onclick="return confirm(
+                            'Mark salary as paid for ' +
+                            '{{ total_workers }} employees?\n' +
+                            'Total Amount: ' +
+                            '₹{{ total_net|round(2) }}')">
+                    <i class="bi bi-check-circle"></i>
+                    Pay Salary
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% elif payment and payment.status == 'paid' %}
+<div class="alert alert-success d-flex
+            align-items-center gap-2 mb-3">
+    <i class="bi bi-check-circle-fill fs-5"></i>
+    <div>
+        Salary paid for {{ payment.total_workers }} employees.
+        Total: <strong>
+            ₹{{ '%.2f'|format(payment.total_amount) }}
+        </strong>
+        on {{ payment.paid_at.strftime('%d/%m/%Y %H:%M')
+              if payment.paid_at else '' }}
+        <a href="/salary/payment-sheet?month={{ month }}&year={{ year }}&company_id={{ company_id }}"
+           class="btn btn-outline-success btn-sm ms-3">
+            <i class="bi bi-file-earmark"></i>
+            View Payment Sheet
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Salary Table -->
+<div class="content-card">
+    <h6 class="fw-semibold mb-3">
+        Salary Register — {{ month_name }} {{ year }}
+        {% if company_id %}
+        — {{ companies|selectattr('id','equalto',
+             company_id|int)|first|attr('name')
+             if company_id else '' }}
+        {% endif %}
+    </h6>
+    <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle">
+        <thead>
+            <tr>
+                <th>Emp ID</th>
+                <th>Worker Name</th>
+                <th>Company</th>
+                <th>Post</th>
+                <th class="text-end">Days</th>
+                <th class="text-end">Basic</th>
+                <th class="text-end">DA</th>
+                <th class="text-end">HRA</th>
+                <th class="text-end">Special</th>
+                <th class="text-end">Gross</th>
+                <th class="text-end">PF</th>
+                <th class="text-end">ESIC</th>
+                <th class="text-end">Advance</th>
+                <th class="text-end fw-bold">Net Pay</th>
+                <th>Slip</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in salaries %}
+            <tr>
+                <td>
+                    <code style="font-size:11px">
+                        {{ s.worker.employee_id or
+                           'EMP%04d'|format(s.worker.id) }}
+                    </code>
+                </td>
+                <td>{{ s.worker.full_name }}</td>
+                <td>
+                    <small>{{ s.company.name }}</small>
+                </td>
+                <td>{{ s.worker.post }}</td>
+                <td class="text-end">
+                    {{ s.days_present }}
+                </td>
+                <td class="text-end">
+                    {{ '%.2f'|format(s.basic) }}
+                </td>
+                <td class="text-end">
+                    {{ '%.2f'|format(s.da) }}
+                </td>
+                <td class="text-end">
+                    {{ '%.2f'|format(s.hra) }}
+                </td>
+                <td class="text-end">
+                    {{ '%.2f'|format(s.special_allowance) }}
+                </td>
+                <td class="text-end fw-semibold">
+                    {{ '%.2f'|format(s.gross) }}
+                </td>
+                <td class="text-end text-danger">
+                    {{ '%.2f'|format(s.pf_employee) }}
+                </td>
+                <td class="text-end text-danger">
+                    {{ '%.2f'|format(s.esic_employee) }}
+                </td>
+                <td class="text-end text-danger">
+                    {{ '%.2f'|format(s.advance) }}
+                </td>
+                <td class="text-end fw-bold text-success">
+                    {{ '%.2f'|format(s.net_pay) }}
+                </td>
+                <td>
+                    <a href="/salary/slip/{{ s.id }}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-receipt"></i>
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="15"
+                    class="text-center text-muted py-4">
+                    No salary generated for
+                    {{ month_name }} {{ year }}.
+                    <a href="/salary/generate">
+                        Generate now
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if salaries %}
+        <tfoot class="table-light fw-semibold">
+            <tr>
+                <td colspan="9" class="text-end">
+                    Totals:
+                </td>
+                <td class="text-end">
+                    ₹{{ '%.2f'|format(total_gross) }}
+                </td>
+                <td class="text-end text-danger">
+                    ₹{{ '%.2f'|format(total_pf) }}
+                </td>
+                <td class="text-end text-danger">
+                    ₹{{ '%.2f'|format(total_esic) }}
+                </td>
+                <td></td>
+                <td class="text-end text-success">
+                    ₹{{ '%.2f'|format(total_net) }}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+    </div>
+</div>
+{% endblock %}

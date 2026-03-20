@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block page_title %}Submit Deployment Request{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:650px">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="background:#e8eaf6;padding:12px;
+                    border-radius:10px">
+            <i class="bi bi-send text-primary fs-4"></i>
+        </div>
+        <div>
+            <h6 class="fw-semibold mb-0">
+                Submit Deployment Request
+            </h6>
+            <small class="text-muted">
+                Request will be sent to HR/Admin for approval
+            </small>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Worker *</label>
+                <select name="worker_id" class="form-select"
+                        required>
+                    <option value="">-- Select Worker --</option>
+                    {% for w in workers %}
+                    <option value="{{ w.id }}">
+                        {{ w.full_name }} — {{ w.post or 'No post' }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Company *</label>
+                <select name="company_id" class="form-select"
+                        required>
+                    <option value="">-- Select Company --</option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Post *</label>
+                <input type="text" name="post"
+                       class="form-control"
+                       placeholder="e.g. Helper, Supervisor"
+                       required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Date From *</label>
+                <input type="date" name="date_from"
+                       class="form-control"
+                       value="{{ today }}" required>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control"
+                          rows="2"
+                          placeholder="Any special instructions...">
+                </textarea>
+            </div>
+            <div class="col-12">
+                <div class="alert alert-info small py-2 mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    This request will be reviewed by HR/Admin
+                    before the worker is officially deployed.
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i>
+                    Submit for Approval
+                </button>
+                <a href="/approval"
+                   class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block page_title %}Upload KYC — {{ worker.full_name }}{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:750px">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="background:#e8eaf6;padding:12px;border-radius:10px">
+            <i class="bi bi-shield-check text-primary fs-4"></i>
+        </div>
+        <div>
+            <h6 class="fw-semibold mb-0">Upload KYC Documents</h6>
+            <small class="text-muted">{{ worker.full_name }} — {{ worker.post }}</small>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <h6 class="text-muted border-bottom pb-2 mb-3">KYC Numbers</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label">Aadhaar Number</label>
+                <input type="text" name="aadhaar_number"
+                       class="form-control"
+                       value="{{ worker.aadhaar_number or '' }}"
+                       placeholder="XXXX XXXX XXXX">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">PAN Number</label>
+                <input type="text" name="pan_number"
+                       class="form-control"
+                       value="{{ worker.pan_number or '' }}"
+                       placeholder="ABCDE1234F">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Bank Name</label>
+                <input type="text" name="bank_name"
+                       class="form-control"
+                       value="{{ worker.bank_name or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Account Number</label>
+                <input type="text" name="account_number"
+                       class="form-control"
+                       value="{{ worker.account_number or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">IFSC Code</label>
+                <input type="text" name="ifsc_code"
+                       class="form-control"
+                       value="{{ worker.ifsc_code or '' }}">
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3">
+            Document Uploads
+            <small class="text-muted fw-normal">
+                (JPG, PNG or PDF — max 16MB)
+            </small>
+        </h6>
+        <div class="row g-3">
+
+            <!-- Photo -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-camera"></i> Worker Photo
+                </label>
+                {% if worker.photo %}
+                <div class="mb-2">
+                    <img src="/uploads/{{ worker.photo }}"
+                         style="height:80px;border-radius:6px"
+                         alt="Current photo">
+                    <small class="text-success d-block mt-1">
+                        <i class="bi bi-check-circle"></i>
+                        Already uploaded
+                    </small>
+                </div>
+                {% endif %}
+                <input type="file" name="photo"
+                       class="form-control"
+                       accept="image/*">
+            </div>
+
+            <!-- Aadhaar -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-card-text"></i> Aadhaar Card
+                </label>
+                {% if worker.aadhaar_doc %}
+                <div class="mb-2">
+                    <a href="/uploads/{{ worker.aadhaar_doc }}"
+                       target="_blank"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye"></i> View Uploaded
+                    </a>
+                </div>
+                {% endif %}
+                <input type="file" name="aadhaar_doc"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+
+            <!-- PAN -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-credit-card"></i> PAN Card
+                </label>
+                {% if worker.pan_doc %}
+                <div class="mb-2">
+                    <a href="/uploads/{{ worker.pan_doc }}"
+                       target="_blank"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye"></i> View Uploaded
+                    </a>
+                </div>
+                {% endif %}
+                <input type="file" name="pan_doc"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+
+            <!-- Bank Passbook -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-bank"></i> Bank Passbook
+                </label>
+                {% if worker.bank_passbook %}
+                <div class="mb-2">
+                    <a href="/uploads/{{ worker.bank_passbook }}"
+                       target="_blank"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye"></i> View Uploaded
+                    </a>
+                </div>
+                {% endif %}
+                <input type="file" name="bank_passbook"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save KYC Documents
+            </button>
+            <a href="/workers/{{ worker.id }}"
+               class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

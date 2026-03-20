@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block page_title %}Family Details — {{ worker.full_name }}{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+    <!-- Add Form -->
+    <div class="col-md-4">
+        <div class="content-card">
+            <h6 class="fw-semibold mb-3">Add Family Member</h6>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" name="name"
+                           class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Relation *</label>
+                    <select name="relation" class="form-select" required>
+                        <option value="">-- Select --</option>
+                        <option>Wife</option>
+                        <option>Husband</option>
+                        <option>Son</option>
+                        <option>Daughter</option>
+                        <option>Father</option>
+                        <option>Mother</option>
+                        <option>Brother</option>
+                        <option>Sister</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" name="date_of_birth"
+                           class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile"
+                           class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-circle"></i> Add Member
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Family List -->
+    <div class="col-md-8">
+        <div class="content-card">
+            <div class="d-flex justify-content-between mb-3">
+                <h6 class="fw-semibold mb-0">
+                    Family of {{ worker.full_name }}
+                </h6>
+                <a href="/workers/{{ worker.id }}"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Relation</th>
+                        <th>Date of Birth</th>
+                        <th>Mobile</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in worker.family_members %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ m.name }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ m.relation }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ m.date_of_birth.strftime('%d/%m/%Y')
+                               if m.date_of_birth else '—' }}
+                        </td>
+                        <td>{{ m.mobile or '—' }}</td>
+                        <td>
+                            <a href="/workers/family/delete/{{ m.id }}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Remove?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+                            No family members added yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

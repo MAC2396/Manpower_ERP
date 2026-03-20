@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block page_title %}Generate Salary{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width:600px">
+    <h6 class="fw-semibold mb-4">Generate Monthly Salary</h6>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Select Company *</label>
+                <select name="company_id" class="form-select" required>
+                    <option value="">-- Select Company --</option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Month *</label>
+                <select name="month" class="form-select" required>
+                    {% for m in range(1,13) %}
+                    <option value="{{ m }}"
+                        {{ 'selected' if m == current_month }}>
+                        {{ '%02d' % m }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Year *</label>
+                <input type="number" name="year" class="form-control"
+                       value="{{ current_year }}" required>
+            </div>
+            <div class="col-12">
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-info-circle"></i>
+                    Salary will be calculated for all workers currently
+                    deployed at the selected company. If attendance is
+                    not marked, full month attendance is assumed.
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-cash-stack"></i> Generate Salary
+                </button>
+                <a href="/salary" class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

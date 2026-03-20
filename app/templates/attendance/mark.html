@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% block page_title %}Mark Attendance — {{ month_name }} {{ year }}{% endblock %}
+
+{% block content %}
+<!-- Filter -->
+<div class="content-card mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Month</label>
+            <select name="month" class="form-select form-select-sm">
+                {% for m in range(1,13) %}
+                {% set mnames = {1:'January',2:'February',
+                    3:'March',4:'April',5:'May',6:'June',
+                    7:'July',8:'August',9:'September',
+                    10:'October',11:'November',12:'December'} %}
+                <option value="{{ m }}"
+                    {{ 'selected' if m == month }}>
+                    {{ mnames[m] }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Year</label>
+            <input type="number" name="year"
+                   class="form-control form-control-sm"
+                   value="{{ year }}" style="width:90px">
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Company</label>
+            <select name="company_id"
+                    class="form-select form-select-sm">
+                <option value="">All Companies</option>
+                {% for c in companies %}
+                <option value="{{ c.id }}"
+                    {{ 'selected' if c.id|string == company_id }}>
+                    {{ c.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-sm">
+                Load Workers
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if deployments %}
+<!-- Legend and Quick Actions -->
+<div class="content-card mb-3 py-2">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+        <div class="d-flex gap-3 small">
+            <span>
+                <span class="badge bg-success px-2">P</span>
+                Present
+            </span>
+            <span>
+                <span class="badge bg-danger px-2">A</span>
+                Absent
+            </span>
+            <span>
+                <span class="badge bg-warning text-dark px-2">
+                    H
+                </span>
+                Half Day
+            </span>
+            <span style="background:#FFE0B2;padding:2px 8px;
+                         border-radius:4px;font-size:12px">
+                WO
+            </span>
+            Weekend
+        </div>
+        <div class="ms-auto d-flex gap-2">
+            <button class="btn btn-outline-success btn-sm"
+                    onclick="markAll('P')">
+                ✓ All Present
+            </button>
+            <button class="btn btn-outline-danger btn-sm"
+                    onclick="markAll('A')">
+                ✗ All Absent
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Grid -->
+<div class="content-card p-0">
+    <form method="POST">
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="year"  value="{{ year }}">
+        <input type="hidden" name="company_id"
+               value="{{ company_id }}">
+
+        {% for dep in deployments %}
+        <input type="hidden" name="worker_ids"
+               value="{{ dep.worker_id }}">
+        {% endfor %}
+
+        <div class="table-responsive"
+            style="-webkit-overflow-scrolling:touch">
+        <table class="table table-bordered table-sm mb-0"
+               id="att-table"
+               style="font-size:12px">
+            <thead class="sticky-top">
+                <tr style="background:#1a237e;color:white">
+                    <th style="min-width:80px;
+                                background:#1a237e;color:white">
+                        Emp ID
+                    </th>
+                    <th style="min-width:150px;
+                                background:#1a237e;color:white">
+                        Name
+                    </th>
+                    <th style="min-width:80px;
+                                background:#1a237e;color:white">
+                        Post
+                    </th>
+                    {% for di in day_info %}
+                    <th class="text-center p-1"
+                        style="min-width:38px;
+                               background:{{ '#e65100' if di.is_weekend else '#1a237e' }};
+                               color:white">
+                        {{ di.day }}<br>
+                        <span style="font-size:9px">
+                            {{ di.name }}
+                        </span>
+                    </th>
+                    {% endfor %}
+                    <th class="text-center"
+                        style="background:#2e7d32;color:white;
+                               min-width:35px">
+                        P
+                    </th>
+                    <th class="text-center"
+                        style="background:#c62828;color:white;
+                               min-width:35px">
+                        A
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dep in deployments %}
+                <tr>
+                    <td class="small text-muted fw-semibold">
+                        {{ dep.worker.employee_id or
+                           'EMP%04d'|format(dep.worker.id) }}
+                    </td>
+                    <td class="fw-semibold">
+                        {{ dep.worker.full_name }}
+                    </td>
+                    <td class="text-muted small">
+                        {{ dep.post }}
+                    </td>
+                    {% for di in day_info %}
+                    {% set cur = attendance_grid.get(
+                           dep.worker_id, {}).get(di.day, 'P') %}
+                    <td class="text-center p-0"
+                        style="background:{{ '#FFE0B2' if di.is_weekend else 'white' }}">
+                        {% if di.is_weekend %}
+                            <span style="font-size:9px;
+                                         color:#e65100">WO</span>
+                            <input type="hidden"
+                                   name="att_{{ dep.worker_id }}_{{ di.day }}"
+                                   value="A">
+                        {% else %}
+                            <select name="att_{{ dep.worker_id }}_{{ di.day }}"
+                                    class="att-select"
+                                    data-worker="{{ dep.worker_id }}"
+                                    onchange="colorCell(this)"
+                                    style="width:36px;border:none;
+                                           font-size:11px;
+                                           text-align:center;
+                                           background:transparent;
+                                           cursor:pointer">
+                                <option value="P"
+                                    {{ 'selected' if cur == 'P' }}>
+                                    P
+                                </option>
+                                <option value="A"
+                                    {{ 'selected' if cur == 'A' }}>
+                                    A
+                                </option>
+                                <option value="H"
+                                    {{ 'selected' if cur == 'H' }}>
+                                    H
+                                </option>
+                            </select>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="text-center text-success
+                               fw-semibold"
+                        id="p_{{ dep.worker_id }}">
+                        {{ attendance_grid.get(
+                            dep.worker_id, {}).values()
+                           |list|select('equalto','P')
+                           |list|length }}
+                    </td>
+                    <td class="text-center text-danger
+                               fw-semibold"
+                        id="a_{{ dep.worker_id }}">
+                        {{ attendance_grid.get(
+                            dep.worker_id, {}).values()
+                           |list|select('equalto','A')
+                           |list|length }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        <div class="p-3">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-save"></i> Save Attendance
+            </button>
+            <a href="/attendance"
+               class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% else %}
+<div class="content-card text-center py-5 text-muted">
+    <i class="bi bi-people fs-1 d-block mb-2"></i>
+    Select a company and click <strong>Load Workers</strong>
+    to mark attendance.
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function colorCell(sel) {
+    const colors = {
+        'P': '#C8E6C9',
+        'A': '#FFCDD2',
+        'H': '#FFF9C4'
+    };
+    sel.parentElement.style.background =
+        colors[sel.value] || 'white';
+}
+document.querySelectorAll('.att-select').forEach(colorCell);
+
+function markAll(status) {
+    document.querySelectorAll('.att-select').forEach(sel => {
+        sel.value = status;
+        colorCell(sel);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block page_title %}
+    Payment Sheet — {{ month_name }} {{ year }}
+{% endblock %}
+{% block content %}
+
+<!-- Filter -->
+<div class="content-card mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Month</label>
+            <select name="month"
+                    class="form-select form-select-sm">
+                {% for m in range(1,13) %}
+                {% set mnames = {1:'January',2:'February',
+                    3:'March',4:'April',5:'May',6:'June',
+                    7:'July',8:'August',9:'September',
+                    10:'October',11:'November',
+                    12:'December'} %}
+                <option value="{{ m }}"
+                    {{ 'selected' if m == month }}>
+                    {{ mnames[m] }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">Year</label>
+            <input type="number" name="year"
+                   class="form-control form-control-sm"
+                   value="{{ year }}" style="width:90px">
+        </div>
+        <div class="col-auto">
+            <label class="form-label mb-1 small">
+                Company
+            </label>
+            <select name="company_id"
+                    class="form-select form-select-sm">
+                <option value="">All Companies</option>
+                {% for c in companies %}
+                <option value="{{ c.id }}"
+                    {{ 'selected' if c.id|string == company_id }}>
+                    {{ c.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i> Filter
+            </button>
+        </div>
+        <div class="col-auto ms-auto d-flex gap-2">
+            <a href="/salary/export-payment-excel?month={{ month }}&year={{ year }}&company_id={{ company_id }}"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-download"></i>
+                Export Payment Excel
+            </a>
+            <button onclick="window.print()"
+                    class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Payment Status -->
+{% if payment %}
+<div class="alert alert-{{ 'success' if payment.status == 'paid' else 'warning' }} mb-3">
+    <i class="bi bi-{{ 'check-circle' if payment.status == 'paid' else 'clock' }}-fill"></i>
+    Status: <strong>
+        {{ payment.status.upper() }}
+    </strong>
+    {% if payment.paid_at %}
+    | Paid on:
+    {{ payment.paid_at.strftime('%d/%m/%Y %H:%M') }}
+    {% endif %}
+    | Total Workers: {{ payment.total_workers }}
+    | Total Amount:
+    <strong>₹{{ '%.2f'|format(payment.total_amount) }}</strong>
+</div>
+{% endif %}
+
+<!-- Payment Sheet Table -->
+<div class="content-card" id="payment-sheet">
+    <div class="d-flex justify-content-between mb-3">
+        <div>
+            <h6 class="fw-semibold mb-1">
+                Salary Payment Sheet
+            </h6>
+            <small class="text-muted">
+                {{ month_name }} {{ year }} |
+                {{ salaries|length }} Employees |
+                Total: ₹{{ '%.2f'|format(
+                    salaries|sum(attribute='net_pay')) }}
+            </small>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Emp ID</th>
+                <th>Employee Name</th>
+                <th>Post</th>
+                <th>Company</th>
+                <th>Bank Name</th>
+                <th>Account No</th>
+                <th>IFSC Code</th>
+                <th class="text-end">Gross (₹)</th>
+                <th class="text-end">Deductions (₹)</th>
+                <th class="text-end fw-bold">Net Pay (₹)</th>
+                <th class="text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in salaries %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <code style="font-size:11px">
+                        {{ s.worker.employee_id or
+                           'EMP%04d'|format(s.worker.id) }}
+                    </code>
+                </td>
+                <td class="fw-semibold">
+                    {{ s.worker.full_name }}
+                </td>
+                <td>{{ s.worker.post }}</td>
+                <td>
+                    <small>{{ s.company.name }}</small>
+                </td>
+                <td>
+                    {{ s.worker.bank_name or
+                       '<span class="text-danger small">
+                        Missing</span>'|safe }}
+                </td>
+                <td>
+                    {{ s.worker.account_number or
+                       '<span class="text-danger small">
+                        Missing</span>'|safe }}
+                </td>
+                <td>
+                    {{ s.worker.ifsc_code or
+                       '<span class="text-danger small">
+                        Missing</span>'|safe }}
+                </td>
+                <td class="text-end">
+                    {{ '%.2f'|format(s.gross) }}
+                </td>
+                <td class="text-end text-danger">
+                    {{ '%.2f'|format(s.total_deductions) }}
+                </td>
+                <td class="text-end fw-bold text-success">
+                    ₹ {{ '%.2f'|format(s.net_pay) }}
+                </td>
+                <td class="text-center">
+                    {% if payment and
+                          payment.status == 'paid' %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check"></i>
+                            Paid
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning
+                                     text-dark">
+                            Pending
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="12"
+                    class="text-center text-muted py-4">
+                    No salary records found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if salaries %}
+        <tfoot class="table-dark">
+            <tr>
+                <td colspan="8" class="text-end fw-bold">
+                    TOTAL ({{ salaries|length }} Employees):
+                </td>
+                <td class="text-end fw-bold">
+                    ₹{{ '%.2f'|format(
+                        salaries|sum(attribute='gross')) }}
+                </td>
+                <td class="text-end fw-bold text-danger">
+                    ₹{{ '%.2f'|format(
+                        salaries|sum(
+                            attribute='total_deductions')) }}
+                </td>
+                <td class="text-end fw-bold text-success">
+                    ₹{{ '%.2f'|format(
+                        salaries|sum(attribute='net_pay')) }}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+@media print {
+    .sidebar, .topbar, .btn,
+    .content-card:first-child { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    #payment-sheet { box-shadow: none !important; }
+}
+</style>
+{% endblock %}

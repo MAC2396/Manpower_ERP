@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block page_title %}Salary Slip{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+    <button onclick="window.print()" class="btn btn-primary btn-sm">
+        <i class="bi bi-printer"></i> Print Slip
+    </button>
+    <a href="/salary" class="btn btn-secondary btn-sm ms-2">Back</a>
+</div>
+
+<div class="content-card" style="max-width:700px" id="slip">
+    <!-- Header -->
+    <div class="text-center border-bottom pb-3 mb-3">
+        <h5 class="fw-bold mb-1">Manpower Payroll System</h5>
+        <div class="text-muted small">Salary Slip</div>
+        <div class="fw-semibold mt-1">
+            Month: {{ '%02d' % sal.month }} / {{ sal.year }}
+        </div>
+    </div>
+
+    <!-- Worker Info -->
+    <div class="row mb-3">
+        <div class="col-6">
+            <table class="table table-sm table-borderless">
+                <tr><th>Employee Name</th><td>{{ sal.worker.full_name }}</td></tr>
+                <tr><th>Post</th><td>{{ sal.worker.post }}</td></tr>
+                <tr><th>Company</th><td>{{ sal.company.name }}</td></tr>
+            </table>
+        </div>
+        <div class="col-6">
+            <table class="table table-sm table-borderless">
+                <tr><th>Aadhaar</th><td>{{ sal.worker.aadhaar_number }}</td></tr>
+                <tr><th>PAN</th><td>{{ sal.worker.pan_number }}</td></tr>
+                <tr><th>Days Present</th><td>{{ sal.days_present }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Earnings vs Deductions -->
+    <div class="row">
+        <div class="col-6">
+            <table class="table table-sm table-bordered">
+                <thead class="table-success">
+                    <tr><th colspan="2">Earnings</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Basic</td><td class="text-end">₹ {{ '%.2f'|format(sal.basic) }}</td></tr>
+                    <tr><td>DA</td><td class="text-end">₹ {{ '%.2f'|format(sal.da) }}</td></tr>
+                    <tr><td>HRA</td><td class="text-end">₹ {{ '%.2f'|format(sal.hra) }}</td></tr>
+                    <tr><td>Special Allowance</td><td class="text-end">₹ {{ '%.2f'|format(sal.special_allowance) }}</td></tr>
+                </tbody>
+                <tfoot class="table-light fw-semibold">
+                    <tr><td>Gross</td><td class="text-end">₹ {{ '%.2f'|format(sal.gross) }}</td></tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="col-6">
+            <table class="table table-sm table-bordered">
+                <thead class="table-danger">
+                    <tr><th colspan="2">Deductions</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>PF (12%)</td><td class="text-end">₹ {{ '%.2f'|format(sal.pf_employee) }}</td></tr>
+                    <tr><td>ESIC (0.75%)</td><td class="text-end">₹ {{ '%.2f'|format(sal.esic_employee) }}</td></tr>
+                    <tr><td>Advance</td><td class="text-end">₹ {{ '%.2f'|format(sal.advance) }}</td></tr>
+                    <tr><td>Other</td><td class="text-end">₹ {{ '%.2f'|format(sal.other_deductions) }}</td></tr>
+                </tbody>
+                <tfoot class="table-light fw-semibold">
+                    <tr><td>Total Deductions</td><td class="text-end">₹ {{ '%.2f'|format(sal.total_deductions) }}</td></tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Net Pay -->
+    <div class="alert alert-success text-center fw-bold fs-5 mt-2">
+        Net Pay: ₹ {{ '%.2f'|format(sal.net_pay) }}
+    </div>
+
+    <div class="text-center text-muted small mt-3">
+        This is a computer generated salary slip.
+    </div>
+</div>
+
+{% block scripts %}
+<style>
+@media print {
+    .sidebar, .topbar, .btn, .breadcrumb { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    #slip { box-shadow: none !important; }
+}
+</style>
+{% endblock %}
+{% endblock %}

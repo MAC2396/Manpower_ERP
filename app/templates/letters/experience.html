@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Experience Letter — {{ worker.full_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+        .letterhead {
+            text-align: center;
+            border-bottom: 3px solid #1a237e;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .letterhead h2 {
+            color: #1a237e;
+            margin: 0;
+            font-size: 24px;
+        }
+        .letterhead p {
+            margin: 4px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        .letter-ref {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .subject {
+            font-weight: bold;
+            margin: 20px 0;
+            text-decoration: underline;
+            font-size: 16px;
+            text-align: center;
+        }
+        .body-text {
+            line-height: 1.9;
+            text-align: justify;
+        }
+        .highlight-box {
+            background: #f0f4ff;
+            border-left: 4px solid #1a237e;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .signature {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sign-line {
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            min-width: 180px;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Print Button -->
+<div class="no-print"
+     style="text-align:right;margin-bottom:20px">
+    <button onclick="window.print()"
+            style="background:#1a237e;color:white;
+                   border:none;padding:8px 20px;
+                   border-radius:6px;cursor:pointer;
+                   font-size:14px">
+        🖨️ Print Letter
+    </button>
+    <button onclick="window.close()"
+            style="background:#666;color:white;
+                   border:none;padding:8px 20px;
+                   border-radius:6px;cursor:pointer;
+                   font-size:14px;margin-left:10px">
+        ✕ Close
+    </button>
+</div>
+
+<!-- Letter -->
+<div class="letterhead">
+    <h2>MANPOWER SERVICES</h2>
+    <p>Your Company Address Here | Phone: XXXXXXXXXX</p>
+    <p>Email: info@yourcompany.com | GST: XXXXXXXXXXXXXXX</p>
+</div>
+
+<div class="letter-ref">
+    <div>
+        <strong>Ref No:</strong>
+        EXP/{{ worker.employee_id or
+               'EMP%04d'|format(worker.id) }}/{{ today.year }}
+    </div>
+    <div>
+        <strong>Date:</strong>
+        {{ today.strftime('%d %B %Y') }}
+    </div>
+</div>
+
+<div class="subject">TO WHOMSOEVER IT MAY CONCERN</div>
+
+<div class="body-text">
+    <p>
+        This is to certify that
+        <strong>{{ worker.full_name }}</strong>,
+        Son/Daughter of
+        <strong>
+            {{ worker.father_name or '____________' }}
+        </strong>,
+        bearing Employee ID
+        <strong>
+            {{ worker.employee_id or
+               'EMP%04d'|format(worker.id) }}
+        </strong>
+        has worked with us
+        {% if dep and dep.company %}
+        at <strong>{{ dep.company.name }}</strong>
+        {% endif %}
+        in the capacity of
+        <strong>
+            {{ dep.post if dep else
+               worker.post or '____________' }}
+        </strong>.
+    </p>
+</div>
+
+<div class="highlight-box">
+    <strong>Employee Details:</strong><br><br>
+    Name: <strong>{{ worker.full_name }}</strong><br>
+    Employee ID:
+    <strong>
+        {{ worker.employee_id or
+           'EMP%04d'|format(worker.id) }}
+    </strong><br>
+    Designation:
+    <strong>
+        {{ dep.post if dep else worker.post or '—' }}
+    </strong><br>
+    {% if dep %}
+    Period of Employment:
+    <strong>
+        {{ dep.date_from.strftime('%d %B %Y') }}
+    </strong>
+    to
+    <strong>
+        {{ dep.date_to.strftime('%d %B %Y')
+           if dep.date_to else 'Present' }}
+    </strong><br>
+    {% endif %}
+    Aadhaar: <strong>
+        {{ worker.aadhaar_number or '—' }}
+    </strong>
+</div>
+
+<div class="body-text">
+    <p>
+        During the tenure of employment,
+        <strong>{{ worker.full_name }}</strong>
+        has shown dedication, sincerity and
+        professional conduct. His/Her performance
+        and behavior were found to be satisfactory.
+    </p>
+    <p>
+        We wish him/her all the best in his/her
+        future endeavors.
+    </p>
+    <p>
+        This certificate is issued on request of the
+        employee for whatever purpose it may serve.
+    </p>
+</div>
+
+<div class="signature">
+    <div>
+        <div class="sign-line">
+            Authorized Signatory
+        </div>
+        <div style="font-size:12px;margin-top:4px">
+            Manpower Services
+        </div>
+    </div>
+    <div>
+        <div style="font-size:12px;
+                    color:#666;
+                    text-align:center">
+            Office Seal
+            <div style="width:100px;height:100px;
+                        border:2px dashed #ccc;
+                        border-radius:50%;
+                        margin:10px auto;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:#ccc;
+                        font-size:11px">
+                SEAL
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    This is a computer generated certificate.
+    Ref: EXP/{{ worker.employee_id or
+                'EMP%04d'|format(worker.id) }}/{{ today.year }}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between
+                align-items-center mb-4">
+        <div>
+            <h6 class="fw-semibold mb-1">
+                System Users
+            </h6>
+            <small class="text-muted">
+                Manage Admin, HR and Supervisor accounts
+            </small>
+        </div>
+        <a href="/users/add"
+           class="btn btn-primary btn-sm">
+            <i class="bi bi-person-plus"></i>
+            Add User
+        </a>
+    </div>
+
+    <div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Mobile</th>
+                <th>Assigned Company</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td class="fw-semibold">
+                    {{ u.full_name }}
+                </td>
+                <td>
+                    <code>{{ u.username }}</code>
+                </td>
+                <td>
+                    {% if u.role == 'admin' %}
+                        <span class="badge bg-danger">
+                            Admin
+                        </span>
+                    {% elif u.role == 'hr' %}
+                        <span class="badge bg-primary">
+                            HR
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success">
+                            Supervisor
+                        </span>
+                    {% endif %}
+                </td>
+                <td>{{ u.mobile or '—' }}</td>
+                <td>
+                    {% if u.assignments %}
+                        <span class="badge bg-light
+                                     text-dark border">
+                            {{ u.assignments[0]
+                               .company.name }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted small">
+                            —
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if u.is_active %}
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            Inactive
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+
+                    {% if u.role == 'supervisor' %}
+                    <a href="/users/{{ u.id }}/permissions"
+                    class="btn btn-outline-info btn-sm"
+                    title="Manage Permissions">
+                        <i class="bi bi-shield-lock"></i>
+                    </a>
+                    {% endif %}
+
+                    <a href="/users/{{ u.id }}/reset-password"
+                    class="btn btn-outline-primary btn-sm"
+                    title="Reset Password">
+                        <i class="bi bi-key"></i>
+                    </a>
+
+                    {% if u.is_active %}
+                    <a href="/users/{{ u.id }}/toggle"
+                    class="btn btn-outline-danger btn-sm"
+                    onclick="return confirm('Deactivate {{ u.full_name }}?')"
+                    title="Deactivate">
+                        <i class="bi bi-pause"></i>
+                    </a>
+                    {% else %}
+                    <a href="/users/{{ u.id }}/toggle"
+                    class="btn btn-outline-success btn-sm"
+                    onclick="return confirm('Activate {{ u.full_name }}?')"
+                    title="Activate">
+                        <i class="bi bi-play"></i>
+                    </a>
+                    {% endif %}
+
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8"
+                    class="text-center
+                           text-muted py-5">
+                    <i class="bi bi-people fs-1
+                               d-block mb-2"
+                       style="color:var(--text-muted)">
+                    </i>
+                    No users yet.
+                    <a href="/users/add">
+                        Add first user
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="content-card mt-0 py-2">
+    <div class="d-flex gap-4 small flex-wrap">
+        <span>
+            <i class="bi bi-shield-lock
+                       text-info"></i>
+            = Manage Permissions
+            (Supervisors only)
+        </span>
+        <span>
+            <i class="bi bi-key text-primary"></i>
+            = Reset Password
+        </span>
+        <span>
+            <i class="bi bi-pause text-danger"></i>
+            = Deactivate User
+        </span>
+        <span>
+            <i class="bi bi-play text-success"></i>
+            = Activate User
+        </span>
+        <span class="ms-auto text-muted">
+            Admin and HR have full access to
+            all modules by default.
+            Permissions apply to Supervisors only.
+        </span>
+    </div>
+</div>
+
+{% endblock %}

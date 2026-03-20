@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block page_title %}Advance Salary{% endblock %}
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="fw-semibold mb-1">Advance Salary Records</h6>
+            <small class="text-muted">
+                Track advances given to workers
+            </small>
+        </div>
+        <a href="/advance/add" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add Advance
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card" style="border-color:#1a237e">
+                <div class="text-muted small">Total Advances</div>
+                <div class="number text-primary">
+                    {{ advances|length }}
+                </div>
+                <div class="small text-muted">All records</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="border-color:#f57f17">
+                <div class="text-muted small">Pending Deduction</div>
+                <div class="number text-warning">
+                    ₹ {{ '%.2f'|format(
+                        advances|selectattr('is_deducted','equalto',false)
+                               |sum(attribute='amount')) }}
+                </div>
+                <div class="small text-muted">Not yet deducted</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card" style="border-color:#2e7d32">
+                <div class="text-muted small">Total Deducted</div>
+                <div class="number text-success">
+                    ₹ {{ '%.2f'|format(
+                        advances|selectattr('is_deducted','equalto',true)
+                               |sum(attribute='amount')) }}
+                </div>
+                <div class="small text-muted">Already deducted</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advances Table -->
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Worker Name</th>
+                <th>Company</th>
+                <th>Amount (₹)</th>
+                <th>Date Given</th>
+                <th>Deduct Month</th>
+                <th>Reason</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in advances %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <div class="fw-semibold">{{ a.worker.full_name }}</div>
+                    <small class="text-muted">{{ a.worker.post }}</small>
+                </td>
+                <td>{{ a.company.name }}</td>
+                <td class="fw-semibold text-danger">
+                    ₹ {{ '%.2f'|format(a.amount) }}
+                </td>
+                <td>{{ a.date_given.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    {{ '%02d'|format(a.month) }}/{{ a.year }}
+                </td>
+                <td>
+                    <small>{{ a.reason or '—' }}</small>
+                </td>
+                <td class="text-center">
+                    {% if a.is_deducted %}
+                        <span class="badge bg-success">Deducted</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if not a.is_deducted %}
+                    <a href="/advance/delete/{{ a.id }}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('Delete this advance?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center text-muted py-5">
+                    <i class="bi bi-cash-coin fs-1 d-block mb-2"></i>
+                    No advance records yet.<br>
+                    <a href="/advance/add"
+                       class="btn btn-primary btn-sm mt-2">
+                        Add First Advance
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

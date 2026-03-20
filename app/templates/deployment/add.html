@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block page_title %}Deploy Worker{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width:700px">
+    <h6 class="fw-semibold mb-4">Deploy Worker to Company</h6>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Select Worker *</label>
+                <select name="worker_id" class="form-select" required>
+                    <option value="">-- Select Worker --</option>
+                    {% for w in workers %}
+                    <option value="{{ w.id }}">{{ w.full_name }} — {{ w.post }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Client Company *</label>
+                <select name="company_id" class="form-select" required>
+                    <option value="">-- Select Company --</option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Post at Company *</label>
+                <input type="text" name="post" class="form-control"
+                       placeholder="e.g. Helper, Supervisor" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Date From *</label>
+                <input type="date" name="date_from" class="form-control"
+                       value="{{ today }}" required>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">Deploy Worker</button>
+                <a href="/deployment" class="btn btn-secondary ms-2">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

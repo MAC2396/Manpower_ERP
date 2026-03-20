@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% block page_title %}Permissions — {{ user.full_name }}{% endblock %}
+{% block content %}
+
+<div class="content-card mb-3">
+    <div class="d-flex align-items-center gap-3">
+        <div style="background:var(--badge-info-bg);
+                    padding:12px;border-radius:10px">
+            <i class="bi bi-shield-lock fs-3"
+               style="color:var(--btn-primary-bg)"></i>
+        </div>
+        <div>
+            <h6 class="fw-semibold mb-1">
+                Access Permissions
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold">
+                    {{ user.full_name }}
+                </span>
+                <code>{{ user.username }}</code>
+                <span class="badge bg-success">
+                    {{ user.role.upper() }}
+                </span>
+            </div>
+        </div>
+        <a href="/users"
+           class="btn btn-secondary btn-sm ms-auto">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info small py-2 mb-3">
+    <i class="bi bi-info-circle"></i>
+    Changes take effect <strong>immediately</strong>
+    on next page load for the user.
+    If the user is currently logged in, they need to
+    <strong>logout and login again</strong> to see
+    updated sidebar menu items.
+</div>
+
+<div class="content-card">
+    <form method="POST">
+        <div class="d-flex justify-content-between
+                    align-items-center mb-3">
+            <h6 class="fw-semibold mb-0">
+                Module Access Control
+            </h6>
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-outline-success
+                               btn-sm"
+                        onclick="grantAll()">
+                    <i class="bi bi-check-all"></i>
+                    Grant All
+                </button>
+                <button type="button"
+                        class="btn btn-outline-danger
+                               btn-sm"
+                        onclick="revokeAll()">
+                    <i class="bi bi-x-circle"></i>
+                    Revoke All
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th style="min-width:180px">
+                        Module / Page
+                    </th>
+                    <th class="text-center"
+                        style="min-width:70px">
+                        <i class="bi bi-eye
+                                   text-primary"></i>
+                        <br>
+                        <small>View</small>
+                    </th>
+                    <th class="text-center"
+                        style="min-width:70px">
+                        <i class="bi bi-plus-circle
+                                   text-success"></i>
+                        <br>
+                        <small>Add</small>
+                    </th>
+                    <th class="text-center"
+                        style="min-width:70px">
+                        <i class="bi bi-pencil
+                                   text-warning"></i>
+                        <br>
+                        <small>Edit</small>
+                    </th>
+                    <th class="text-center"
+                        style="min-width:70px">
+                        <i class="bi bi-trash
+                                   text-danger"></i>
+                        <br>
+                        <small>Delete</small>
+                    </th>
+                    <th class="text-center"
+                        style="min-width:70px">
+                        <i class="bi bi-download
+                                   text-info"></i>
+                        <br>
+                        <small>Export</small>
+                    </th>
+                    <th class="text-center"
+                        style="min-width:80px">
+                        <i class="bi bi-check2-all"></i>
+                        <br>
+                        <small>All</small>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for module, label in modules %}
+                {% set p = existing.get(module) %}
+                <tr>
+                    <td>
+                        <span class="fw-semibold">
+                            {{ label }}
+                        </span>
+                        {% if p and p.can_view %}
+                        <span class="badge bg-success
+                                     ms-1"
+                              style="font-size:9px">
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary
+                                     ms-1"
+                              style="font-size:9px">
+                            No Access
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input
+                                      perm-check"
+                               data-module="{{ module }}"
+                               data-action="view"
+                               name="{{ module }}_view"
+                               id="{{ module }}_view"
+                               {{ 'checked' if p and
+                                  p.can_view }}
+                               onchange="updateRowStatus(
+                                   '{{ module }}')">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input
+                                      perm-check"
+                               data-module="{{ module }}"
+                               data-action="add"
+                               name="{{ module }}_add"
+                               {{ 'checked' if p and
+                                  p.can_add }}
+                               onchange="updateRowStatus(
+                                   '{{ module }}')">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input
+                                      perm-check"
+                               data-module="{{ module }}"
+                               data-action="edit"
+                               name="{{ module }}_edit"
+                               {{ 'checked' if p and
+                                  p.can_edit }}
+                               onchange="updateRowStatus(
+                                   '{{ module }}')">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input
+                                      perm-check"
+                               data-module="{{ module }}"
+                               data-action="delete"
+                               name="{{ module }}_delete"
+                               {{ 'checked' if p and
+                                  p.can_delete }}
+                               onchange="updateRowStatus(
+                                   '{{ module }}')">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input
+                                      perm-check"
+                               data-module="{{ module }}"
+                               data-action="export"
+                               name="{{ module }}_export"
+                               {{ 'checked' if p and
+                                  p.can_export }}
+                               onchange="updateRowStatus(
+                                   '{{ module }}')">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               id="all_{{ module }}"
+                               onchange="toggleRow(
+                                   this,
+                                   '{{ module }}')"
+                               {{ 'checked' if p and
+                                  p.can_view and
+                                  p.can_add and
+                                  p.can_edit and
+                                  p.can_delete and
+                                  p.can_export }}>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit"
+                    class="btn btn-primary">
+                <i class="bi bi-save"></i>
+                Save Permissions
+            </button>
+            <a href="/users"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toggle all checkboxes in a row
+function toggleRow(cb, module) {
+    document.querySelectorAll(
+        `.perm-check[data-module="${module}"]`
+    ).forEach(c => {
+        c.checked = cb.checked;
+    });
+}
+
+// Update the "All" checkbox for a row
+function updateRowStatus(module) {
+    const checks = document.querySelectorAll(
+        `.perm-check[data-module="${module}"]`
+    );
+    const allChecked = Array.from(checks)
+        .every(c => c.checked);
+    const allCb = document.getElementById(
+        `all_${module}`
+    );
+    if (allCb) allCb.checked = allChecked;
+}
+
+// Grant all permissions
+function grantAll() {
+    document.querySelectorAll('.perm-check')
+        .forEach(c => c.checked = true);
+    document.querySelectorAll(
+        'input[id^="all_"]'
+    ).forEach(c => c.checked = true);
+}
+
+// Revoke all permissions
+function revokeAll() {
+    document.querySelectorAll('.perm-check')
+        .forEach(c => c.checked = false);
+    document.querySelectorAll(
+        'input[id^="all_"]'
+    ).forEach(c => c.checked = false);
+}
+
+// Auto-check view when any other permission is checked
+document.querySelectorAll('.perm-check').forEach(cb => {
+    cb.addEventListener('change', function() {
+        if (this.dataset.action !== 'view'
+            && this.checked) {
+            const viewCb = document.getElementById(
+                `${this.dataset.module}_view`
+            );
+            if (viewCb) viewCb.checked = true;
+        }
+    });
+});
+</script>
+{% endblock %}

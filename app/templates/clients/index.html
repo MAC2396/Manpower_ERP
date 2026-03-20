@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block page_title %}Client Companies{% endblock %}
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between
+                align-items-center mb-4">
+        <div>
+            <h6 class="fw-semibold mb-1">
+                All Client Companies
+            </h6>
+            <small class="text-muted">
+                {{ companies|length }} companies registered
+            </small>
+        </div>
+        <a href="/clients/add"
+           class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i>
+            Add Company
+        </a>
+    </div>
+
+    <div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Company Name</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>GST</th>
+                <th>Supervisor</th>
+                <th>Employees</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in companies %}
+            {% set dep_count = c.deployments|
+                selectattr('is_active','equalto',true)
+                |list|length %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td class="fw-semibold">{{ c.name }}</td>
+                <td>{{ c.contact_person or '—' }}</td>
+                <td>{{ c.contact_phone or '—' }}</td>
+                <td>{{ c.city or '—' }}</td>
+                <td>
+                    <small>{{ c.gst_number or '—' }}</small>
+                </td>
+                <td>
+                    {% if c.supervisor_assignments %}
+                    <span class="badge bg-success">
+                        {{ c.supervisor_assignments[0]
+                           .supervisor.full_name }}
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary">
+                        None
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if dep_count > 0 %}
+                    <span class="badge bg-primary">
+                        {{ dep_count }} Active
+                    </span>
+                    {% else %}
+                    <span class="badge bg-light
+                                 text-muted">
+                        0
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <a href="/clients/{{ c.id }}"
+                       class="btn btn-sm
+                              btn-outline-primary"
+                       title="View">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="/clients/{{ c.id }}/edit"
+                       class="btn btn-sm
+                              btn-outline-warning"
+                       title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if dep_count == 0 %}
+                    <a href="/clients/{{ c.id }}/delete"
+                       class="btn btn-sm
+                              btn-outline-danger"
+                       title="Delete"
+                       onclick="return confirm(
+                           'Delete {{ c.name }}?\n'
+                           + 'This cannot be undone!')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-sm
+                                   btn-outline-danger"
+                            disabled
+                            title="{{ dep_count }} employee(s) deployed">
+                        <i class="bi bi-lock"></i>
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9"
+                    class="text-center text-muted py-4">
+                    No companies yet.
+                    <a href="/clients/add">Add one</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

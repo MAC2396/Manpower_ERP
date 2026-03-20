@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Joining Letter — {{ worker.full_name }}</title> 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+        .letterhead {
+            text-align: center;
+            border-bottom: 3px solid #1a237e;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .letterhead h2 {
+            color: #1a237e;
+            margin: 0;
+            font-size: 24px;
+        }
+        .letterhead p {
+            margin: 4px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        .letter-ref {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .subject {
+            font-weight: bold;
+            margin: 20px 0;
+            text-decoration: underline;
+        }
+        .body-text {
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .details-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+        .details-table td:first-child {
+            font-weight: bold;
+            background: #f5f5f5;
+            width: 200px;
+        }
+        .signature {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature div {
+            text-align: center;
+        }
+        .sign-line {
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            min-width: 180px;
+        }
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Print Button -->
+<div class="no-print"
+     style="text-align:right;margin-bottom:20px">
+    <button onclick="window.print()"
+            style="background:#1a237e;color:white;
+                   border:none;padding:8px 20px;
+                   border-radius:6px;cursor:pointer;
+                   font-size:14px">
+        🖨️ Print Letter
+    </button>
+    <button onclick="window.close()"
+            style="background:#666;color:white;
+                   border:none;padding:8px 20px;
+                   border-radius:6px;cursor:pointer;
+                   font-size:14px;margin-left:10px">
+        ✕ Close
+    </button>
+</div>
+
+<!-- Letter -->
+<div class="letterhead">
+    <h2>MANPOWER SERVICES</h2>
+    <p>Your Company Address Here | Phone: XXXXXXXXXX</p>
+    <p>Email: info@yourcompany.com | GST: XXXXXXXXXXXXXXX</p>
+</div>
+
+<div class="letter-ref">
+    <div>
+        <strong>Ref No:</strong>
+        JOIN/{{ worker.employee_id or
+                'EMP%04d'|format(worker.id) }}/{{ today.year }}
+    </div>
+    <div>
+        <strong>Date:</strong>
+        {{ today.strftime('%d %B %Y') }}
+    </div>
+</div>
+
+<div>
+    <strong>To,</strong><br>
+    {{ worker.full_name }}<br>
+    S/o {{ worker.father_name or '____________' }}<br>
+    {{ worker.address or '____________' }}
+</div>
+
+<div class="subject">
+    Subject: Appointment / Joining Letter
+</div>
+
+<div class="body-text">
+    <p>Dear <strong>{{ worker.full_name }}</strong>,</p>
+
+    <p>
+        We are pleased to inform you that you have been
+        selected for the position of
+        <strong>{{ dep.post if dep else worker.post or '____________' }}</strong>
+        {% if dep %}
+        at <strong>{{ dep.company.name }}</strong>
+        {% endif %}
+        with effect from
+        <strong>
+            {{ dep.date_from.strftime('%d %B %Y')
+               if dep else today.strftime('%d %B %Y') }}
+        </strong>.
+    </p>
+
+    <p>
+        Your appointment is subject to the following
+        terms and conditions:
+    </p>
+</div>
+
+<table class="details-table">
+    <tr>
+        <td>Employee Name</td>
+        <td>{{ worker.full_name }}</td>
+    </tr>
+    <tr>
+        <td>Employee ID</td>
+        <td>{{ worker.employee_id or
+               'EMP%04d'|format(worker.id) }}</td>
+    </tr>
+    <tr>
+        <td>Designation</td>
+        <td>{{ dep.post if dep else
+               worker.post or '—' }}</td>
+    </tr>
+    {% if dep %}
+    <tr>
+        <td>Company / Site</td>
+        <td>{{ dep.company.name }}</td>
+    </tr>
+    <tr>
+        <td>Date of Joining</td>
+        <td>
+            {{ dep.date_from.strftime('%d %B %Y') }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td>Aadhaar Number</td>
+        <td>{{ worker.aadhaar_number or '—' }}</td>
+    </tr>
+    <tr>
+        <td>PAN Number</td>
+        <td>{{ worker.pan_number or '—' }}</td>
+    </tr>
+</table>
+
+<div class="body-text">
+    <p>
+        You are required to report to duty on time and
+        maintain discipline as per company rules.
+        Any violation of rules may lead to disciplinary
+        action.
+    </p>
+    <p>
+        Please sign and return the duplicate copy of
+        this letter as a token of your acceptance of
+        the above terms and conditions.
+    </p>
+    <p>We wish you a successful and rewarding career
+       with us.</p>
+    <p>Yours faithfully,</p>
+</div>
+
+<div class="signature">
+    <div>
+        <div class="sign-line">
+            Authorized Signatory
+        </div>
+        <div style="font-size:12px;margin-top:4px">
+            Manpower Services
+        </div>
+    </div>
+    <div>
+        <div class="sign-line">
+            Employee Signature
+        </div>
+        <div style="font-size:12px;margin-top:4px">
+            {{ worker.full_name }}
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    This is a computer generated letter.
+    Valid without signature if digitally approved.
+</div>
+
+</body>
+</html>

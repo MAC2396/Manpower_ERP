@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block page_title %}Deployment Approvals{% endblock %}
+{% block content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#f57f17">
+            <div class="text-muted small">Pending</div>
+            <div class="number text-warning">
+                {{ requests|selectattr('status','equalto','pending')
+                           |list|length }}
+            </div>
+            <div class="small text-muted">Awaiting review</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#2e7d32">
+            <div class="text-muted small">Approved</div>
+            <div class="number text-success">
+                {{ requests|selectattr('status','equalto','approved')
+                           |list|length }}
+            </div>
+            <div class="small text-muted">Confirmed</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#c62828">
+            <div class="text-muted small">Rejected</div>
+            <div class="number text-danger">
+                {{ requests|selectattr('status','equalto','rejected')
+                           |list|length }}
+            </div>
+            <div class="small text-muted">Not approved</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="border-color:#1a237e">
+            <div class="text-muted small">New Request</div>
+            <a href="/approval/submit"
+               class="btn btn-primary btn-sm mt-2 d-block">
+                <i class="bi bi-plus-circle"></i>
+                Submit Request
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Requests Table -->
+<div class="content-card">
+    <h6 class="fw-semibold mb-3">All Deployment Requests</h6>
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Worker</th>
+                <th>Company</th>
+                <th>Post</th>
+                <th>Date From</th>
+                <th>Submitted By</th>
+                <th>Submitted At</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in requests %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <div class="fw-semibold">
+                        {{ r.worker.full_name }}
+                    </div>
+                    <small class="text-muted">
+                        {{ r.worker.post }}
+                    </small>
+                </td>
+                <td>{{ r.company.name }}</td>
+                <td>{{ r.post }}</td>
+                <td>{{ r.date_from.strftime('%d/%m/%Y') }}</td>
+                <td>{{ r.submitter.full_name }}</td>
+                <td>
+                    <small>
+                        {{ r.submitted_at.strftime('%d/%m %H:%M') }}
+                    </small>
+                </td>
+                <td class="text-center">
+                    {% if r.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+                    {% elif r.status == 'approved' %}
+                        <span class="badge bg-success">
+                            Approved
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger">
+                            Rejected
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if session.get('user_role') in ['admin','hr']
+                          and r.status == 'pending' %}
+                        <a href="/approval/review/{{ r.id }}"
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> Review
+                        </a>
+                    {% elif r.review_notes %}
+                        <span class="text-muted small"
+                              title="{{ r.review_notes }}">
+                            <i class="bi bi-chat-text"></i> Note
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9"
+                    class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No deployment requests yet.<br>
+                    <a href="/approval/submit"
+                       class="btn btn-primary btn-sm mt-2">
+                        Submit First Request
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

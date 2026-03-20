@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block page_title %}Salary Structure{% endblock %}
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between
+                align-items-center mb-4">
+        <div>
+            <h6 class="fw-semibold mb-1">
+                Company-wise Salary Structure
+            </h6>
+            <small class="text-muted">
+                Set different salary for same post in
+                different companies
+            </small>
+        </div>
+        <a href="/structure/add" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add Structure
+        </a>
+    </div>
+
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Company</th>
+                <th>Post</th>
+                <th class="text-end">Basic (₹)</th>
+                <th class="text-end">DA</th>
+                <th class="text-end">HRA</th>
+                <th class="text-end">Special</th>
+                <th class="text-end">Bonus</th>
+                <th class="text-center">EPF</th>
+                <th class="text-center">ESIC</th>
+                <th class="text-end">Gross (₹)</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in structures %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    {% if s.company %}
+                        <span class="badge bg-primary
+                                     px-2 py-1">
+                            {{ s.company.name }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary
+                                     px-2 py-1">
+                            Default
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="fw-semibold">{{ s.post }}</td>
+                <td class="text-end">
+                    ₹ {{ '%.2f'|format(s.basic) }}
+                </td>
+                <td class="text-end small">
+                    {% if s.da_type == 'percent' %}
+                        {{ s.da_value }}%
+                    {% else %}
+                        ₹ {{ '%.0f'|format(s.da_value) }}
+                    {% endif %}
+                </td>
+                <td class="text-end small">
+                    {% if s.hra_type == 'percent' %}
+                        {{ s.hra_value }}%
+                    {% else %}
+                        ₹ {{ '%.0f'|format(s.hra_value) }}
+                    {% endif %}
+                </td>
+                <td class="text-end small">
+                    {% if s.special_type == 'percent' %}
+                        {{ s.special_value }}%
+                    {% else %}
+                        ₹ {{ '%.0f'|format(s.special_value) }}
+                    {% endif %}
+                </td>
+                <td class="text-end small">
+                    {% if s.bonus_value and s.bonus_value > 0 %}
+                        {% if s.bonus_type == 'percent' %}
+                            {{ s.bonus_value }}%
+                        {% else %}
+                            ₹ {{ '%.0f'|format(s.bonus_value) }}
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if s.epf_applicable %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if s.esic_applicable %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </td>
+                <td class="text-end fw-semibold text-success">
+                    {% set da_amt = (s.basic * s.da_value / 100)
+                        if s.da_type == 'percent'
+                        else s.da_value %}
+                    {% set hra_amt = (s.basic * s.hra_value / 100)
+                        if s.hra_type == 'percent'
+                        else s.hra_value %}
+                    {% set sp_amt = (s.basic * s.special_value / 100)
+                        if s.special_type == 'percent'
+                        else s.special_value %}
+                    {% set bn_amt = (s.basic * s.bonus_value / 100)
+                        if s.bonus_type == 'percent'
+                        else (s.bonus_value or 0) %}
+                    ₹ {{ '%.2f'|format(
+                        s.basic + da_amt + hra_amt +
+                        sp_amt + bn_amt) }}
+                </td>
+                <td class="text-center">
+                    <a href="/structure/edit/{{ s.id }}"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="/structure/delete/{{ s.id }}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('Delete?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="12"
+                    class="text-center text-muted py-5">
+                    <i class="bi bi-sliders fs-1 d-block mb-2">
+                    </i>
+                    No salary structures defined yet.<br>
+                    <a href="/structure/add"
+                       class="btn btn-primary btn-sm mt-2">
+                        Add First Structure
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- How it works -->
+<div class="content-card mt-3">
+    <h6 class="fw-semibold mb-3">
+        <i class="bi bi-info-circle text-primary"></i>
+        How Salary Calculation Works
+    </h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <table class="table table-sm table-bordered mb-0">
+                <tr class="table-primary">
+                    <th>Component</th>
+                    <th>Formula</th>
+                </tr>
+                <tr>
+                    <td>Basic</td>
+                    <td>Structure × (days present / total days)</td>
+                </tr>
+                <tr>
+                    <td>DA</td>
+                    <td>% of Basic OR Fixed Amount</td>
+                </tr>
+                <tr>
+                    <td>HRA</td>
+                    <td>% of Basic OR Fixed Amount</td>
+                </tr>
+                <tr>
+                    <td>Special Allowance</td>
+                    <td>% of Basic OR Fixed Amount</td>
+                </tr>
+                <tr>
+                    <td>Bonus</td>
+                    <td>% of Basic OR Fixed Amount</td>
+                </tr>
+                <tr class="table-success fw-semibold">
+                    <td>Gross Salary</td>
+                    <td>Basic + DA + HRA + Special + Bonus</td>
+                </tr>
+                <tr>
+                    <td>EPF Employee</td>
+                    <td>12% of Basic</td>
+                </tr>
+                <tr>
+                    <td>EPF Employer</td>
+                    <td>13% of Basic</td>
+                </tr>
+                <tr>
+                    <td>ESIC Employee</td>
+                    <td>0.75% of Gross</td>
+                </tr>
+                <tr>
+                    <td>ESIC Employer</td>
+                    <td>3.25% of Gross</td>
+                </tr>
+                <tr class="table-danger fw-semibold">
+                    <td>Net Pay</td>
+                    <td>Gross − EPF − ESIC − Advance</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-primary small mb-3">
+                <strong>Company-wise Priority:</strong><br>
+                1st — Company + Post specific structure<br>
+                2nd — Default structure for that post<br>
+                3rd — System default ₹10,000
+            </div>
+            <div class="alert alert-success small mb-0">
+                <strong>Fixed vs Percentage:</strong><br>
+                Each component (DA, HRA, Special, Bonus)
+                can be set as either a <strong>percentage
+                of basic</strong> or a
+                <strong>fixed amount</strong>.
+                Fixed amounts are prorated based on
+                days present.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

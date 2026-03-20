@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Welcome Banner -->
+<div class="mb-4 p-4 rounded-3"
+     style="background:linear-gradient(
+                135deg,
+                var(--btn-primary-bg) 0%,
+                var(--sb-hover) 100%);
+            color:white">
+    <div class="d-flex align-items-center
+                justify-content-between flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-1"
+                style="color:white">
+                Welcome back,
+                {{ session.get('user_name','User') }}!
+                👋
+            </h4>
+            <p class="mb-0 opacity-75"
+               style="color:white">
+                <i class="bi bi-calendar3"></i>
+                {{ now.strftime('%A, %d %B %Y') }}
+                &nbsp;|&nbsp;
+                <span class="badge"
+                      style="background:rgba(255,255,255,0.2)">
+                    {{ session.get('user_role','')
+                       .upper() }}
+                </span>
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if check_permission('workers','add') %}
+            <a href="/workers/add"
+               class="btn btn-sm"
+               style="background:rgba(255,255,255,0.2);
+                      color:white;border:1px solid
+                      rgba(255,255,255,0.3)">
+                <i class="bi bi-person-plus"></i>
+                Add Employee
+            </a>
+            {% endif %}
+            {% if check_permission('salary','add') %}
+            <a href="/salary/generate"
+               class="btn btn-sm"
+               style="background:rgba(255,255,255,0.2);
+                      color:white;border:1px solid
+                      rgba(255,255,255,0.3)">
+                <i class="bi bi-cash-stack"></i>
+                Generate Salary
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row — only show cards user has access to -->
+{% set show_any_stat = stats.companies is not none
+   or stats.workers is not none
+   or stats.active_deployments is not none
+   or stats.kyc_pending is not none
+   or stats.pending_advances is not none
+   or stats.pending_approvals is not none %}
+
+{% if show_any_stat %}
+<div class="row g-3 mb-4 stat-row">
+
+    {% if stats.companies is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/clients"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#e8eaf6,#c5cae9);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-buildings fs-2"
+                   style="color:#1a237e"></i>
+            </div>
+            <div style="font-size:32px;
+                        font-weight:700;
+                        color:#1a237e">
+                {{ stats.companies }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#3949ab">
+                Companies
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if stats.workers is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/workers"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#e8f5e9,#c8e6c9);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-people fs-2"
+                   style="color:#1b5e20"></i>
+            </div>
+            <div style="font-size:32px;
+                        font-weight:700;
+                        color:#1b5e20">
+                {{ stats.workers }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#2e7d32">
+                Employees
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if stats.active_deployments is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/deployment"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#e3f2fd,#bbdefb);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-diagram-3 fs-2"
+                   style="color:#0d47a1"></i>
+            </div>
+            <div style="font-size:32px;
+                        font-weight:700;
+                        color:#0d47a1">
+                {{ stats.active_deployments }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#1565c0">
+                Deployed
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if stats.kyc_pending is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/workers?kyc_filter=pending"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#fff8e1,#ffecb3);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-exclamation-triangle
+                           fs-2"
+                   style="color:#e65100"></i>
+            </div>
+            <div style="font-size:32px;
+                        font-weight:700;
+                        color:#e65100">
+                {{ stats.kyc_pending }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#f57f17">
+                KYC Pending
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if stats.pending_advances is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/advance"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#f3e5f5,#e1bee7);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-cash-coin fs-2"
+                   style="color:#4a148c"></i>
+            </div>
+            <div style="font-size:24px;
+                        font-weight:700;
+                        color:#4a148c">
+                ₹{{ '%.0f'|format(
+                    stats.pending_advances) }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#6a1b9a">
+                Advances Due
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if stats.pending_approvals is not none %}
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <a href="/approval"
+           class="text-decoration-none">
+        <div class="content-card h-100 text-center
+                    p-3 border-0"
+             style="background:linear-gradient(
+                        135deg,#fce4ec,#f8bbd0);
+                    cursor:pointer;
+                    transition:transform 0.2s"
+             onmouseover="this.style.transform=
+                          'translateY(-3px)'"
+             onmouseout="this.style.transform='none'">
+            <div class="mb-2">
+                <i class="bi bi-check2-circle fs-2"
+                   style="color:#880e4f"></i>
+            </div>
+            <div style="font-size:32px;
+                        font-weight:700;
+                        color:#880e4f">
+                {{ stats.pending_approvals }}
+            </div>
+            <div class="small fw-semibold"
+                 style="color:#c62828">
+                Approvals
+            </div>
+        </div>
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+<!-- Pending Approvals Alert -->
+{% if stats.pending_approvals is not none
+      and stats.pending_approvals > 0 %}
+<div class="alert alert-warning d-flex
+            align-items-center gap-2 mb-4">
+    <i class="bi bi-bell-fill fs-5"></i>
+    <div>
+        <strong>
+            {{ stats.pending_approvals }}
+            deployment request(s)
+        </strong>
+        waiting for your approval.
+        <a href="/approval"
+           class="alert-link ms-2 fw-bold">
+            Review Now →
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+    <!-- Recent Employees -->
+    {% if check_permission('workers') and
+          recent_workers %}
+    <div class="col-md-7">
+        <div class="content-card h-100">
+            <div class="d-flex justify-content-between
+                        align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">
+                    <i class="bi bi-people
+                               text-primary"></i>
+                    Recent Employees
+                </h6>
+                <a href="/workers"
+                   class="btn btn-outline-primary
+                           btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Emp ID</th>
+                        <th>Name</th>
+                        <th>Post</th>
+                        <th>KYC</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in recent_workers %}
+                    <tr>
+                        <td>
+                            <code style="font-size:11px">
+                                {{ w.employee_id or
+                                   'EMP%04d'|format(
+                                    w.id) }}
+                            </code>
+                        </td>
+                        <td>
+                            <div class="d-flex
+                                        align-items-center
+                                        gap-2">
+                                {% if w.photo %}
+                                <img src="/uploads/{{ w.photo }}"
+                                     style="width:30px;
+                                            height:30px;
+                                            border-radius:50%;
+                                            object-fit:cover">
+                                {% else %}
+                                <div style="width:30px;
+                                            height:30px;
+                                            background:var(--badge-info-bg);
+                                            border-radius:50%;
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center">
+                                    <i class="bi bi-person"
+                                       style="color:var(--btn-primary-bg);
+                                              font-size:14px">
+                                    </i>
+                                </div>
+                                {% endif %}
+                                <span class="fw-semibold"
+                                      style="font-size:13px">
+                                    {{ w.full_name }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ w.post or '—' }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if w.kyc_complete() %}
+                            <span class="badge
+                                         badge-kyc-done">
+                                ✓
+                            </span>
+                            {% else %}
+                            <span class="badge
+                                         badge-kyc-pending">
+                                !
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/workers/{{ w.id }}"
+                               class="btn btn-outline-secondary
+                                      btn-sm"
+                               style="font-size:11px;
+                                      padding:2px 8px">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions + System Info -->
+    <div class="col-md-{% if check_permission('workers') and recent_workers %}5{% else %}12{% endif %}">
+
+        <!-- Quick Actions -->
+        <div class="content-card mb-3">
+            <h6 class="fw-semibold mb-3">
+                <i class="bi bi-lightning-charge
+                           text-warning"></i>
+                Quick Actions
+            </h6>
+            <div class="d-grid gap-2">
+                {% if check_permission('workers','add') %}
+                <a href="/workers/add"
+                   class="btn btn-primary btn-sm
+                           text-start">
+                    <i class="bi bi-person-plus me-2">
+                    </i>
+                    Add New Employee
+                </a>
+                {% endif %}
+
+                {% if check_permission('approval','add') %}
+                <a href="/approval/submit"
+                   class="btn btn-outline-primary
+                           btn-sm text-start">
+                    <i class="bi bi-send me-2"></i>
+                    Submit Deployment Request
+                </a>
+                {% endif %}
+
+                {% if check_permission('attendance','add') %}
+                <a href="/attendance"
+                   class="btn btn-outline-success
+                           btn-sm text-start">
+                    <i class="bi bi-calendar-check
+                               me-2"></i>
+                    Mark Attendance
+                </a>
+                {% endif %}
+
+                {% if check_permission('salary','add') %}
+                <a href="/salary/generate"
+                   class="btn btn-outline-info
+                           btn-sm text-start">
+                    <i class="bi bi-cash-stack me-2">
+                    </i>
+                    Generate Salary
+                </a>
+                {% endif %}
+
+                {% if check_permission('reports','export') %}
+                <a href="/reports"
+                   class="btn btn-outline-secondary
+                           btn-sm text-start">
+                    <i class="bi bi-download me-2"></i>
+                    Export Reports
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Show message if no quick actions -->
+            {% set has_actions =
+               check_permission('workers','add') or
+               check_permission('approval','add') or
+               check_permission('attendance','add') or
+               check_permission('salary','add') or
+               check_permission('reports','export') %}
+            {% if not has_actions %}
+            <p class="text-muted small text-center py-2 mb-0">
+                No quick actions available for
+                your role.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- System Info — only show accessible stats -->
+        {% set has_any_stat =
+           stats.companies is not none or
+           stats.workers is not none or
+           stats.active_deployments is not none or
+           stats.kyc_pending is not none or
+           stats.pending_approvals is not none %}
+
+        {% if has_any_stat %}
+        <div class="content-card">
+            <h6 class="fw-semibold mb-3">
+                <i class="bi bi-info-circle
+                           text-info"></i>
+                System Overview
+            </h6>
+            <div class="d-flex flex-column gap-2">
+
+                {% if stats.companies is not none %}
+                <div class="d-flex justify-content-between
+                            align-items-center p-2 rounded"
+                     style="background:var(--table-head-bg)">
+                    <span class="small">
+                        <i class="bi bi-buildings
+                                   me-2 text-primary">
+                        </i>
+                        Total Companies
+                    </span>
+                    <span class="fw-bold"
+                          style="color:var(--btn-primary-bg)">
+                        {{ stats.companies }}
+                    </span>
+                </div>
+                {% endif %}
+
+                {% if stats.workers is not none %}
+                <div class="d-flex justify-content-between
+                            align-items-center p-2 rounded"
+                     style="background:var(--table-head-bg)">
+                    <span class="small">
+                        <i class="bi bi-people me-2
+                                   text-success"></i>
+                        Active Employees
+                    </span>
+                    <span class="fw-bold text-success">
+                        {{ stats.workers }}
+                    </span>
+                </div>
+                {% endif %}
+
+                {% if stats.active_deployments
+                      is not none %}
+                <div class="d-flex justify-content-between
+                            align-items-center p-2 rounded"
+                     style="background:var(--table-head-bg)">
+                    <span class="small">
+                        <i class="bi bi-diagram-3
+                                   me-2 text-info"></i>
+                        Currently Deployed
+                    </span>
+                    <span class="fw-bold text-info">
+                        {{ stats.active_deployments }}
+                    </span>
+                </div>
+                {% endif %}
+
+                {% if stats.kyc_pending is not none %}
+                <div class="d-flex justify-content-between
+                            align-items-center p-2 rounded"
+                     style="background:var(--table-head-bg)">
+                    <span class="small">
+                        <i class="bi bi-shield-exclamation
+                                   me-2 text-warning"></i>
+                        KYC Pending
+                    </span>
+                    <span class="fw-bold text-warning">
+                        {{ stats.kyc_pending }}
+                    </span>
+                </div>
+                {% endif %}
+
+                {% if stats.pending_approvals
+                      is not none %}
+                <div class="d-flex justify-content-between
+                            align-items-center p-2 rounded"
+                     style="background:var(--table-head-bg)">
+                    <span class="small">
+                        <i class="bi bi-check2-circle
+                                   me-2 text-danger"></i>
+                        Pending Approvals
+                    </span>
+                    <span class="fw-bold text-danger">
+                        {{ stats.pending_approvals }}
+                    </span>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- No Access Message -->
+{% if not show_any_stat and not check_permission('workers') %}
+<div class="content-card text-center py-5">
+    <i class="bi bi-shield-lock fs-1 d-block mb-3"
+       style="color:var(--text-muted)"></i>
+    <h5 class="fw-semibold">
+        Welcome, {{ session.get('user_name') }}!
+    </h5>
+    <p class="text-muted">
+        You are logged in as
+        <strong>{{ session.get('user_role','').upper() }}</strong>.
+        <br>
+        Contact your Admin to get access to
+        specific modules.
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

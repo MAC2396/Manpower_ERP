@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block page_title %}Edit Worker — {{ worker.full_name }}{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:800px">
+    <h6 class="fw-semibold mb-4">
+        <i class="bi bi-pencil-square text-primary"></i>
+        Edit Worker Details
+    </h6>
+    <form method="POST">
+        <h6 class="text-muted border-bottom pb-2 mb-3">
+            Personal Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="full_name"
+                       class="form-control"
+                       value="{{ worker.full_name }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Father's Name</label>
+                <input type="text" name="father_name"
+                       class="form-control"
+                       value="{{ worker.father_name or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Mobile</label>
+                <input type="text" name="mobile"
+                       class="form-control"
+                       value="{{ worker.mobile or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option value="Male"
+                        {{ 'selected' if worker.gender == 'Male' }}>
+                        Male
+                    </option>
+                    <option value="Female"
+                        {{ 'selected' if worker.gender == 'Female' }}>
+                        Female
+                    </option>
+                    <option value="Other"
+                        {{ 'selected' if worker.gender == 'Other' }}>
+                        Other
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" name="date_of_birth"
+                       class="form-control"
+                       value="{{ worker.date_of_birth.strftime('%Y-%m-%d')
+                                 if worker.date_of_birth else '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Post / Designation</label>
+                <input type="text" name="post"
+                       class="form-control"
+                       value="{{ worker.post or '' }}"
+                       placeholder="e.g. Helper, Supervisor">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Address</label>
+                <textarea name="address" class="form-control"
+                          rows="2">{{ worker.address or '' }}</textarea>
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">
+            KYC Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Aadhaar Number</label>
+                <input type="text" name="aadhaar_number"
+                       class="form-control"
+                       value="{{ worker.aadhaar_number or '' }}"
+                       placeholder="XXXX XXXX XXXX">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">PAN Number</label>
+                <input type="text" name="pan_number"
+                       class="form-control"
+                       value="{{ worker.pan_number or '' }}"
+                       placeholder="ABCDE1234F">
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">
+            Bank Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Bank Name</label>
+                <input type="text" name="bank_name"
+                       class="form-control"
+                       value="{{ worker.bank_name or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Account Number</label>
+                <input type="text" name="account_number"
+                       class="form-control"
+                       value="{{ worker.account_number or '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">IFSC Code</label>
+                <input type="text" name="ifsc_code"
+                       class="form-control"
+                       value="{{ worker.ifsc_code or '' }}">
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+            <a href="/workers/{{ worker.id }}"
+               class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

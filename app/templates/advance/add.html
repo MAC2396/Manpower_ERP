@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block page_title %}Add Advance{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:650px">
+    <h6 class="fw-semibold mb-4">Record Advance Salary</h6>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Worker *</label>
+                <select name="worker_id" class="form-select" required>
+                    <option value="">-- Select Worker --</option>
+                    {% for w in workers %}
+                    <option value="{{ w.id }}">
+                        {{ w.full_name }} — {{ w.post }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Company *</label>
+                <select name="company_id" class="form-select" required>
+                    <option value="">-- Select Company --</option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Advance Amount (₹) *</label>
+                <input type="number" name="amount"
+                       class="form-control" step="0.01"
+                       placeholder="e.g. 2000" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Date Given *</label>
+                <input type="date" name="date_given"
+                       class="form-control"
+                       value="{{ today }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Deduct in Month *</label>
+                <select name="month" class="form-select" required>
+                    {% for m in range(1,13) %}
+                    <option value="{{ m }}"
+                        {{ 'selected' if m == current_month }}>
+                        {{ '%02d'|format(m) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Deduct in Year *</label>
+                <input type="number" name="year"
+                       class="form-control"
+                       value="{{ current_year }}" required>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Reason</label>
+                <input type="text" name="reason"
+                       class="form-control"
+                       placeholder="e.g. Medical emergency, Personal need">
+            </div>
+
+            <!-- Info box -->
+            <div class="col-12">
+                <div class="alert alert-info small py-2 mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    This advance will be <strong>automatically deducted</strong>
+                    from the worker's salary when you generate salary
+                    for the selected month and year.
+                </div>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Advance
+                </button>
+                <a href="/advance" class="btn btn-secondary ms-2">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

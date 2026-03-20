@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block page_title %}Add New Employee{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:800px">
+    <h6 class="fw-semibold mb-4">
+        <i class="bi bi-person-plus text-success"></i>
+        Add New Employee
+    </h6>
+    <form method="POST" enctype="multipart/form-data">
+
+        <h6 class="text-muted border-bottom pb-2 mb-3">
+            Personal Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="full_name"
+                       class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Father's Name</label>
+                <input type="text" name="father_name"
+                       class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Mobile</label>
+                <input type="text" name="mobile"
+                       class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-select">
+                    <option value="">-- Select --</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" name="date_of_birth"
+                       class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">
+                    Post / Designation
+                </label>
+                <input type="text" name="post"
+                       class="form-control"
+                       placeholder="e.g. Helper, Supervisor">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">
+                    Assign to Company
+                    <small class="text-muted">
+                        (optional)
+                    </small>
+                </label>
+                <select name="company_id" class="form-select">
+                    <option value="">
+                        -- Select Company (Optional) --
+                    </option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">
+                        {{ c.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Address</label>
+                <textarea name="address"
+                          class="form-control"
+                          rows="2"></textarea>
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">
+            KYC Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Aadhaar Number</label>
+                <input type="text" name="aadhaar_number"
+                       class="form-control"
+                       placeholder="XXXX XXXX XXXX">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">PAN Number</label>
+                <input type="text" name="pan_number"
+                       class="form-control"
+                       placeholder="ABCDE1234F">
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">
+            Bank Details
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Bank Name</label>
+                <input type="text" name="bank_name"
+                       class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Account Number</label>
+                <input type="text" name="account_number"
+                       class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">IFSC Code</label>
+                <input type="text" name="ifsc_code"
+                       class="form-control">
+            </div>
+        </div>
+
+        <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">
+            Documents Upload
+            <small class="text-muted fw-normal">
+                (JPG, PNG or PDF)
+            </small>
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Photo</label>
+                <input type="file" name="photo"
+                       class="form-control"
+                       accept="image/*">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Aadhaar Card</label>
+                <input type="file" name="aadhaar_doc"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">PAN Card</label>
+                <input type="file" name="pan_doc"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Bank Passbook</label>
+                <input type="file" name="bank_passbook"
+                       class="form-control"
+                       accept="image/*,.pdf">
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-person-plus"></i>
+                Add New Employee
+            </button>
+            <a href="/workers"
+               class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block page_title %}Deployment Tracker{% endblock %}
+{% block content %}
+
+<div class="d-flex gap-2 mb-4">
+    <a href="/deployment/add-requirement" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle"></i> Add Requirement
+    </a>
+    <a href="/deployment/add" class="btn btn-success btn-sm">
+        <i class="bi bi-person-plus"></i> Deploy Worker
+    </a>
+</div>
+
+<!-- Requirement vs Deployed Table -->
+<div class="content-card">
+    <h6 class="fw-semibold mb-3">Manpower Requirement vs Deployed</h6>
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Post</th>
+                <th>Month/Year</th>
+                <th>Shift</th>
+                <th class="text-center">Required</th>
+                <th class="text-center">Deployed</th>
+                <th class="text-center">Difference</th>
+                <th class="text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in req_data %}
+            <tr>
+                <td>{{ d.req.company.name }}</td>
+                <td>{{ d.req.post }}</td>
+                <td>{{ '%02d' % d.req.month }}/{{ d.req.year }}</td>
+                <td>{{ d.req.shift }}</td>
+                <td class="text-center fw-semibold">{{ d.req.required_count }}</td>
+                <td class="text-center fw-semibold">{{ d.deployed }}</td>
+                <td class="text-center">
+                    {% if d.diff == 0 %}
+                        <span class="text-success fw-semibold">0</span>
+                    {% elif d.diff < 0 %}
+                        <span class="text-danger fw-semibold">{{ d.diff }}</span>
+                    {% else %}
+                        <span class="text-warning fw-semibold">+{{ d.diff }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if d.status == 'ok' %}
+                        <span class="badge bg-success">Matched</span>
+                    {% elif d.status == 'short' %}
+                        <span class="badge bg-danger">Short</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Excess</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                    No requirements added yet.
+                    <a href="/deployment/add-requirement">Add one</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

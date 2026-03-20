@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block page_title %}Review Deployment Request{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+
+    <!-- Worker Details -->
+    <div class="col-md-5">
+        <div class="content-card">
+            <h6 class="fw-semibold mb-3">
+                <i class="bi bi-person-circle text-primary"></i>
+                Worker Details
+            </h6>
+            <table class="table table-sm">
+                <tr>
+                    <th width="130">Worker</th>
+                    <td class="fw-semibold">
+                        {{ req.worker.full_name }}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Post</th>
+                    <td>{{ req.worker.post or '—' }}</td>
+                </tr>
+                <tr>
+                    <th>Mobile</th>
+                    <td>{{ req.worker.mobile or '—' }}</td>
+                </tr>
+                <tr>
+                    <th>Aadhaar</th>
+                    <td>{{ req.worker.aadhaar_number or '—' }}</td>
+                </tr>
+                <tr>
+                    <th>KYC Status</th>
+                    <td>
+                        {% if req.worker.kyc_complete() %}
+                            <span class="badge bg-success">
+                                Complete
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning
+                                         text-dark">
+                                Incomplete
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Submitted By</th>
+                    <td>{{ req.submitter.full_name }}</td>
+                </tr>
+                <tr>
+                    <th>Submitted At</th>
+                    <td>
+                        <small>
+                        {{ req.submitted_at.strftime(
+                            '%d/%m/%Y %H:%M') }}
+                        </small>
+                    </td>
+                </tr>
+                {% if req.notes %}
+                <tr>
+                    <th>Notes</th>
+                    <td>
+                        <small>{{ req.notes }}</small>
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Review Form -->
+    <div class="col-md-7">
+        <div class="content-card">
+            <h6 class="fw-semibold mb-3">
+                <i class="bi bi-clipboard-check text-success"></i>
+                Review & Approve / Reject
+            </h6>
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            Company
+                            <small class="text-muted">
+                                (edit if needed)
+                            </small>
+                        </label>
+                        <select name="company_id"
+                                class="form-select">
+                            {% for c in companies %}
+                            <option value="{{ c.id }}"
+                                {{ 'selected' if c.id == req.company_id }}>
+                                {{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            Post
+                            <small class="text-muted">
+                                (edit if needed)
+                            </small>
+                        </label>
+                        <input type="text" name="post"
+                               class="form-control"
+                               value="{{ req.post }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            Date From
+                            <small class="text-muted">
+                                (edit if needed)
+                            </small>
+                        </label>
+                        <input type="date" name="date_from"
+                               class="form-control"
+                               value="{{ req.date_from.strftime('%Y-%m-%d') }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            Review Notes
+                            <small class="text-muted">
+                                (shown to supervisor)
+                            </small>
+                        </label>
+                        <textarea name="review_notes"
+                                  class="form-control"
+                                  rows="2"
+                                  placeholder="Add notes for supervisor...">
+                        </textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit"
+                                    name="action"
+                                    value="approve"
+                                    class="btn btn-success flex-fill py-2">
+                                <i class="bi bi-check-circle"></i>
+                                Approve & Deploy
+                            </button>
+                            <button type="submit"
+                                    name="action"
+                                    value="reject"
+                                    class="btn btn-danger flex-fill py-2"
+                                    onclick="return confirm(
+                                        'Reject this request?')">
+                                <i class="bi bi-x-circle"></i>
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <a href="/approval"
+                           class="btn btn-secondary w-100">
+                            <i class="bi bi-arrow-left"></i>
+                            Back to Approvals
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

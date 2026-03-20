@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block page_title %}Edit Salary Structure{% endblock %}
+{% block content %}
+
+<div class="content-card" style="max-width:650px">
+    <h6 class="fw-semibold mb-4">Edit Salary Structure — {{ s.post }}</h6>
+    <form method="POST">
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Post / Designation *</label>
+                <input type="text" name="post" class="form-control"
+                       value="{{ s.post }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Basic Salary (₹) *</label>
+                <input type="number" name="basic" class="form-control"
+                       step="0.01" value="{{ s.basic }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">DA %</label>
+                <input type="number" name="da_percent" class="form-control"
+                       step="0.01" value="{{ s.da_percent }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">HRA %</label>
+                <input type="number" name="hra_percent" class="form-control"
+                       step="0.01" value="{{ s.hra_percent }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Special Allowance %</label>
+                <input type="number" name="special_percent"
+                       class="form-control"
+                       step="0.01" value="{{ s.special_percent }}">
+            </div>
+            <div class="col-12 mt-2">
+                <button type="submit" class="btn btn-primary">
+                    Update Structure
+                </button>
+                <a href="/structure" class="btn btn-secondary ms-2">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

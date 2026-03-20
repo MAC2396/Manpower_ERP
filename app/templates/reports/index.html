@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block page_title %}Reports & Export{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+
+    <!-- Salary Register Export -->
+    <div class="col-md-6">
+        <div class="content-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="background:#e8eaf6;padding:10px;border-radius:8px">
+                    <i class="bi bi-file-earmark-excel text-primary fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-0">Salary Register</h6>
+                    <small class="text-muted">Export monthly salary data to Excel</small>
+                </div>
+            </div>
+            <form method="POST" action="/reports/export-salary-excel">
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="form-label small">Month</label>
+                        <select name="month" class="form-select form-select-sm">
+                            {% for m in range(1,13) %}
+                            <option value="{{ m }}"
+                                {{ 'selected' if m == current_month }}>
+                                {{ '%02d'|format(m) }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Year</label>
+                        <input type="number" name="year"
+                               class="form-control form-control-sm"
+                               value="{{ current_year }}">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Company</label>
+                        <select name="company_id" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-download"></i> Download Salary Excel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PF ESIC Compliance Export -->
+    <div class="col-md-6">
+        <div class="content-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="background:#e8f5e9;padding:10px;border-radius:8px">
+                    <i class="bi bi-shield-check text-success fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-0">PF & ESIC Compliance</h6>
+                    <small class="text-muted">Export PF and ESIC challan data</small>
+                </div>
+            </div>
+            <form method="POST" action="/reports/export-compliance-excel">
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="form-label small">Month</label>
+                        <select name="month" class="form-select form-select-sm">
+                            {% for m in range(1,13) %}
+                            <option value="{{ m }}"
+                                {{ 'selected' if m == current_month }}>
+                                {{ '%02d'|format(m) }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Year</label>
+                        <input type="number" name="year"
+                               class="form-control form-control-sm"
+                               value="{{ current_year }}">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Company</label>
+                        <select name="company_id" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-download"></i> Download Compliance Excel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Workers KYC Export -->
+    <div class="col-md-6">
+        <div class="content-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="background:#fff3e0;padding:10px;border-radius:8px">
+                    <i class="bi bi-people text-warning fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-0">Workers & KYC Report</h6>
+                    <small class="text-muted">All workers with KYC status</small>
+                </div>
+            </div>
+            <p class="text-muted small">
+                Exports all worker details including Aadhaar, PAN,
+                bank details and KYC completion status.
+            </p>
+            <a href="/reports/export-workers-excel"
+               class="btn btn-warning btn-sm w-100">
+                <i class="bi bi-download"></i> Download Workers Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Deployment Report -->
+    <div class="col-md-6">
+        <div class="content-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="background:#fce4ec;padding:10px;border-radius:8px">
+                    <i class="bi bi-diagram-3 text-danger fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-0">Deployment Summary</h6>
+                    <small class="text-muted">Requirement vs deployed report</small>
+                </div>
+            </div>
+            <form method="POST" action="/reports/export-deployment-excel">
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="form-label small">Month</label>
+                        <select name="month" class="form-select form-select-sm">
+                            {% for m in range(1,13) %}
+                            <option value="{{ m }}"
+                                {{ 'selected' if m == current_month }}>
+                                {{ '%02d'|format(m) }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Year</label>
+                        <input type="number" name="year"
+                               class="form-control form-control-sm"
+                               value="{{ current_year }}">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Company</label>
+                        <select name="company_id" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-danger btn-sm w-100">
+                    <i class="bi bi-download"></i> Download Deployment Excel
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Quarterly Report -->
+    <div class="col-md-6">
+        <div class="content-card h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="background:#e8f5e9;padding:10px;border-radius:8px">
+                    <i class="bi bi-calendar3 text-success fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-semibold mb-0">Quarterly Report</h6>
+                    <small class="text-muted">
+                        3-month combined salary summary
+                    </small>
+                </div>
+            </div>
+            <form method="POST" action="/reports/export-quarterly-excel">
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="form-label small">Quarter</label>
+                        <select name="quarter"
+                                class="form-select form-select-sm">
+                            <option value="1">Q1 (Jan-Mar)</option>
+                            <option value="2">Q2 (Apr-Jun)</option>
+                            <option value="3">Q3 (Jul-Sep)</option>
+                            <option value="4">Q4 (Oct-Dec)</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Year</label>
+                        <input type="number" name="year"
+                               class="form-control form-control-sm"
+                               value="{{ current_year }}">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small">Company</label>
+                        <select name="company_id"
+                                class="form-select form-select-sm">
+                            <option value="">All</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">
+                                {{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit"
+                        class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-download"></i>
+                    Download Quarterly Excel
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
