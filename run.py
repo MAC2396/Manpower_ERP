@@ -12,3 +12,5 @@ if __name__ == '__main__':
 #cd C:\Users\Lenovo\manpower_payroll
 #venv\Scripts\activate
 #py run.py
+
+#cloudflared tunnel --url http://localhost:5000

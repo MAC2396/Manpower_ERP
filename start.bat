@@ -13,17 +13,19 @@ echo [1/2] Starting Flask App...
 start "Manpower Flask" cmd /k "python run.py"
 
 echo Waiting for Flask to start...
-timeout /t 4 /nobreak > nul
+timeout /t 5 /nobreak > nul
 
 echo [2/2] Starting Cloudflare Tunnel...
-start "Cloudflare Tunnel" cmd /k "cloudflared tunnel run mac_manpower_erp"
+start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5000"
 
-echo Opening Browser...
+echo Opening Local Browser...
+timeout /t 3 /nobreak > nul
 start "" "http://127.0.0.1:5000"
 
 echo.
 echo ==========================================
-echo  Local  : http://127.0.0.1:5000
-echo  Mobile : https://mac_manpower_erp.com
+echo  PC     : http://127.0.0.1:5000
+echo  Mobile : Check Cloudflare Tunnel window
+echo           for the https URL
 echo ==========================================
 pause
