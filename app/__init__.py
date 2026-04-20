@@ -2,9 +2,9 @@ from flask import (Flask, render_template, session,
                    redirect, url_for)
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
+import time
 
 db = SQLAlchemy()
-
 
 def create_app():
     app = Flask(__name__)
@@ -50,6 +50,9 @@ def create_app():
     app.jinja_env.globals['check_permission'] = \
         check_permission
 
+    # Simple dashboard cache
+    dashboard_cache = {}
+
     @app.route('/')
     def dashboard():
         if 'user_id' not in session:
@@ -71,60 +74,69 @@ def create_app():
                             session['user_id'])
         now           = datetime.now()
 
-        # Build stats based on permissions
-        stats = {
-            'companies': Company.query.count()
-                         if check_permission('clients')
-                         else None,
+        # Cache key per user per month
+        cache_key = (
+            f"{session['user_id']}_"
+            f"{current_month}_{current_year}"
+        )
 
-            'workers': Worker.query.filter_by(
-                           is_active=True).count()
-                       if check_permission('workers')
-                       else None,
+        # Use cache if less than 60 seconds old
+        cached = dashboard_cache.get(cache_key)
+        if cached and time.time() - cached['ts'] < 60:
+            stats = cached['stats']
+        else:
+            stats = {
+                'companies':
+                    Company.query.count()
+                    if check_permission('clients')
+                    else None,
 
-            'kyc_pending': sum(
-                               1 for w in
-                               Worker.query.all()
-                               if not w.kyc_complete())
-                           if check_permission('workers')
-                           else None,
+                'workers':
+                    Worker.query.filter_by(
+                        is_active=True).count()
+                    if check_permission('workers')
+                    else None,
 
-            'requirements': Requirement.query.filter_by(
-                                month=current_month,
-                                year=current_year
-                            ).count()
-                            if check_permission(
-                                'deployment')
-                            else None,
+                'kyc_pending':
+                    sum(1 for w in Worker.query.all()
+                        if not w.kyc_complete())
+                    if check_permission('workers')
+                    else None,
 
-            'active_deployments': Deployment.query\
-                                  .filter_by(
-                                      is_active=True
-                                  ).count()
-                                  if check_permission(
-                                      'deployment')
-                                  else None,
+                'requirements':
+                    Requirement.query.filter_by(
+                        month=current_month,
+                        year=current_year).count()
+                    if check_permission('deployment')
+                    else None,
 
-            'pending_advances': sum(
-                                    a.amount for a in
-                                    Advance.query
-                                    .filter_by(
-                                        is_deducted=False
-                                    ).all())
-                                if check_permission(
-                                    'advance')
-                                else None,
+                'active_deployments':
+                    Deployment.query.filter_by(
+                        is_active=True).count()
+                    if check_permission('deployment')
+                    else None,
 
-            'pending_approvals': DeploymentRequest\
-                                 .query.filter_by(
-                                     status='pending'
-                                 ).count()
-                                 if check_permission(
-                                     'approval')
-                                 else None,
-        }
+                'pending_advances':
+                    sum(a.amount for a in
+                        Advance.query.filter_by(
+                            is_deducted=False).all())
+                    if check_permission('advance')
+                    else None,
 
-        # Recent workers only if user has access
+                'pending_approvals':
+                    DeploymentRequest.query.filter_by(
+                        status='pending').count()
+                    if check_permission('approval')
+                    else None,
+            }
+
+            # Save to cache
+            dashboard_cache[cache_key] = {
+                'stats': stats,
+                'ts'   : time.time()
+            }
+
+        # Recent workers
         recent_workers = Worker.query.order_by(
             Worker.id.desc()).limit(5).all() \
             if check_permission('workers') else []

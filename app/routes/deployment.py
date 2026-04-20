@@ -100,3 +100,68 @@ def end(id):
     db.session.commit()
     flash('Deployment ended.', 'info')
     return redirect(url_for('deployment.index'))
+
+
+@deployment_bp.route('/deployment/bulk-add',
+                     methods=['GET', 'POST'])
+def bulk_add():
+    from app import db
+    from app.models.worker import Worker
+    from app.models.client import Company
+    from app.models.deployment import Deployment
+    from datetime import datetime, date
+
+    companies = Company.query.all()
+    workers   = Worker.query.filter_by(
+                    is_active=True).all()
+
+    if request.method == 'POST':
+        company_id  = int(request.form['company_id'])
+        post        = request.form['post']
+        date_from   = datetime.strptime(
+            request.form['date_from'], '%Y-%m-%d'
+        ).date()
+        worker_ids  = request.form.getlist(
+            'worker_ids')
+
+        if not worker_ids:
+            flash('Please select at least one employee!',
+                  'warning')
+            return redirect(
+                url_for('deployment.bulk_add'))
+
+        count = 0
+        for wid in worker_ids:
+            wid = int(wid)
+            # Deactivate existing deployment
+            old = Deployment.query.filter_by(
+                worker_id=wid,
+                is_active=True
+            ).first()
+            if old:
+                old.is_active = False
+                old.date_to   = date.today()
+
+            dep = Deployment(
+                worker_id  = wid,
+                company_id = company_id,
+                post       = post,
+                date_from  = date_from,
+                is_active  = True
+            )
+            db.session.add(dep)
+            count += 1
+
+        db.session.commit()
+        flash(
+            f'{count} employee(s) deployed '
+            f'successfully!', 'success'
+        )
+        return redirect(url_for('deployment.index'))
+
+    return render_template(
+        'deployment/bulk_add.html',
+        companies=companies,
+        workers=workers,
+        today=date.today().isoformat()
+    )

@@ -90,8 +90,7 @@ def index():
     # KYC stats
     total_workers   = Worker.query.count()
     kyc_complete    = sum(
-        1 for w in Worker.query.all()
-        if w.kyc_complete()
+         1 for w in all_workers if w.kyc_complete()
     )
     kyc_pending     = total_workers - kyc_complete
 
@@ -498,9 +497,8 @@ def bulk_import():
         if not full_name or full_name == 'Ramesh Kumar':
             continue
 
-        # Skip if italic (sample data)
-        cell = ws.cell(row=row_num, column=1)
-        if cell.font and cell.font.italic:
+        # Skip only if name matches sample data exactly
+        if full_name in ['Ramesh Kumar', 'Suresh Sharma']:
             continue
 
         try:

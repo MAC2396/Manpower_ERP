@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block page_title %}Bulk Deploy Employees{% endblock %}
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="background:var(--badge-info-bg);
+                    padding:12px;border-radius:10px">
+            <i class="bi bi-people-fill fs-3"
+               style="color:var(--btn-primary-bg)"></i>
+        </div>
+        <div>
+            <h6 class="fw-semibold mb-1">
+                Bulk Deploy Employees
+            </h6>
+            <small class="text-muted">
+                Select multiple employees and deploy
+                them to a company at once
+            </small>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">
+                    Company *
+                </label>
+                <select name="company_id"
+                        class="form-select"
+                        required
+                        onchange="updateRemainingCount(this)">
+                    <option value="">
+                        -- Select Company --
+                    </option>
+                    {% for c in companies %}
+                    <option value="{{ c.id }}">
+                        {{ c.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">
+                    Post / Designation *
+                </label>
+                <input type="text"
+                       name="post"
+                       class="form-control"
+                       placeholder="e.g. Helper, Operator"
+                       required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">
+                    Date From *
+                </label>
+                <input type="date"
+                       name="date_from"
+                       class="form-control"
+                       value="{{ today }}"
+                       required>
+            </div>
+        </div>
+
+        <!-- Employee Selection -->
+        <div class="d-flex justify-content-between
+                    align-items-center mb-3">
+            <h6 class="fw-semibold mb-0">
+                Select Employees
+                <span class="badge bg-primary ms-2"
+                      id="selectedCount">0</span>
+                selected
+            </h6>
+            <div class="d-flex gap-2">
+                <input type="text"
+                       class="form-control
+                              form-control-sm"
+                       placeholder="Search employee..."
+                       oninput="filterEmployees(this.value)"
+                       style="width:200px">
+                <button type="button"
+                        class="btn btn-outline-primary
+                               btn-sm"
+                        onclick="selectAll()">
+                    Select All
+                </button>
+                <button type="button"
+                        class="btn btn-outline-secondary
+                               btn-sm"
+                        onclick="deselectAll()">
+                    Deselect All
+                </button>
+            </div>
+        </div>
+
+        <!-- Employee Cards Grid -->
+        <div class="row g-2 mb-4"
+             id="employeeGrid">
+            {% for w in workers %}
+            {% set dep = w.deployments|
+                selectattr('is_active','equalto',true)
+                |list|first
+                if w.deployments else none %}
+            <div class="col-xl-3 col-md-4 col-sm-6
+                         emp-card"
+                 data-name="{{ w.full_name|lower }}"
+                 data-id="{{ w.employee_id or
+                             'emp%04d'|format(w.id) }}">
+                <div class="border rounded p-2
+                             d-flex align-items-center
+                             gap-2 emp-item"
+                     style="cursor:pointer;
+                            transition:all 0.2s"
+                     onclick="toggleEmployee(
+                         this, {{ w.id }})">
+
+                    <!-- Checkbox -->
+                    <input type="checkbox"
+                           name="worker_ids"
+                           value="{{ w.id }}"
+                           class="form-check-input
+                                  emp-checkbox"
+                           style="flex-shrink:0"
+                           onchange="updateCount()">
+
+                    <!-- Photo -->
+                    {% if w.photo %}
+                    <img src="/uploads/{{ w.photo }}"
+                         style="width:36px;height:36px;
+                                border-radius:50%;
+                                object-fit:cover;
+                                flex-shrink:0">
+                    {% else %}
+                    <div style="width:36px;height:36px;
+                                background:var(--badge-info-bg);
+                                border-radius:50%;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                flex-shrink:0">
+                        <i class="bi bi-person"
+                           style="color:var(--btn-primary-bg)">
+                        </i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Info -->
+                    <div style="min-width:0">
+                        <div class="fw-semibold"
+                             style="font-size:12px;
+                                    white-space:nowrap;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis">
+                            {{ w.full_name }}
+                        </div>
+                        <div style="font-size:10px;
+                                    color:var(--text-muted)">
+                            <code>{{ w.employee_id or
+                               'EMP%04d'|format(w.id) }}
+                            </code>
+                            — {{ w.post or '—' }}
+                        </div>
+                        {% if dep %}
+                        <div style="font-size:10px"
+                             class="text-warning">
+                            <i class="bi bi-building">
+                            </i>
+                            {{ dep.company.name }}
+                        </div>
+                        {% else %}
+                        <div style="font-size:10px"
+                             class="text-success">
+                            <i class="bi bi-check-circle">
+                            </i>
+                            Not deployed
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary -->
+        <div class="alert alert-info py-2 mb-3"
+             id="selectionSummary"
+             style="display:none">
+            <i class="bi bi-info-circle"></i>
+            <span id="summaryText"></span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit"
+                    class="btn btn-success">
+                <i class="bi bi-diagram-3"></i>
+                Deploy Selected Employees
+            </button>
+            <a href="/deployment"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEmployee(card, workerId) {
+    const cb = card.querySelector('.emp-checkbox');
+    if (event.target === cb) return;
+    cb.checked = !cb.checked;
+    updateCardStyle(card, cb.checked);
+    updateCount();
+}
+
+function updateCardStyle(card, checked) {
+    const item = card.querySelector('.emp-item');
+    if (checked) {
+        item.style.background = 'var(--alert-success-bg)';
+        item.style.borderColor = '#2e7d32';
+    } else {
+        item.style.background = '';
+        item.style.borderColor = '';
+    }
+}
+
+function updateCount() {
+    const checked = document.querySelectorAll(
+        '.emp-checkbox:checked'
+    ).length;
+    document.getElementById('selectedCount')
+            .textContent = checked;
+
+    const summary = document.getElementById(
+        'selectionSummary');
+    const summaryText = document.getElementById(
+        'summaryText');
+
+    if (checked > 0) {
+        summary.style.display = 'block';
+        summaryText.textContent =
+            `${checked} employee(s) selected for deployment.`;
+    } else {
+        summary.style.display = 'none';
+    }
+
+    // Update all card styles
+    document.querySelectorAll('.emp-card').forEach(card => {
+        const cb = card.querySelector('.emp-checkbox');
+        updateCardStyle(card, cb.checked);
+    });
+}
+
+function selectAll() {
+    document.querySelectorAll('.emp-card').forEach(card => {
+        if (card.style.display !== 'none') {
+            const cb = card.querySelector('.emp-checkbox');
+            cb.checked = true;
+            updateCardStyle(card, true);
+        }
+    });
+    updateCount();
+}
+
+function deselectAll() {
+    document.querySelectorAll('.emp-card').forEach(card => {
+        const cb = card.querySelector('.emp-checkbox');
+        cb.checked = false;
+        updateCardStyle(card, false);
+    });
+    updateCount();
+}
+
+function filterEmployees(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.emp-card').forEach(card => {
+        const name = card.dataset.name;
+        const id   = card.dataset.id;
+        if (name.includes(q) || id.includes(q)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

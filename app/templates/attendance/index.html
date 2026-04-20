@@ -55,8 +55,7 @@
                 <i class="bi bi-download"></i> Export Excel
             </a>
             <button class="btn btn-outline-primary btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#importModal">
+                    onclick="openImportModal()">
                 <i class="bi bi-upload"></i> Import Excel
             </button>
             <a href="/attendance/download-template?month={{ month }}&year={{ year }}&company_id={{ company_id }}"
@@ -175,50 +174,78 @@
 </div>
 
 <!-- Import Modal -->
-<div class="modal fade" id="importModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade"
+     id="importModal"
+     tabindex="-1"
+     aria-labelledby="importModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title fw-semibold">
+                <h6 class="modal-title fw-semibold"
+                    id="importModalLabel">
+                    <i class="bi bi-upload
+                               text-primary"></i>
                     Import Attendance from Excel
                 </h6>
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal"></button>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
             </div>
             <form method="POST"
                   action="/attendance/import-excel"
                   enctype="multipart/form-data">
                 <div class="modal-body">
-                    <input type="hidden" name="month"
+                    <input type="hidden"
+                           name="month"
                            value="{{ month }}">
-                    <input type="hidden" name="year"
+                    <input type="hidden"
+                           name="year"
                            value="{{ year }}">
-                    <input type="hidden" name="company_id"
+                    <input type="hidden"
+                           name="company_id"
                            value="{{ company_id }}">
+
+                    <div class="alert alert-info
+                                small py-2 mb-3">
+                        <i class="bi bi-info-circle">
+                        </i>
+                        Use the
+                        <strong>Sample Template</strong>
+                        for correct format.
+                        Employee IDs must match exactly.
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label">
+                        <label class="form-label
+                                      fw-semibold">
                             Select Excel File
                         </label>
-                        <input type="file" name="excel_file"
+                        <input type="file"
+                               name="excel_file"
                                class="form-control"
-                               accept=".xlsx,.xls" required>
-                    </div>
-                    <div class="alert alert-info small py-2">
-                        <i class="bi bi-info-circle"></i>
-                        Use the <strong>Sample Template</strong>
-                        to ensure correct format.
-                        Employee IDs must match exactly.
+                               accept=".xlsx,.xls"
+                               required>
+                        <div class="form-text">
+                            Only .xlsx or .xls files
+                            are accepted
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button"
-                            class="btn btn-secondary btn-sm"
+                            class="btn btn-secondary
+                                   btn-sm"
                             data-bs-dismiss="modal">
                         Cancel
                     </button>
                     <button type="submit"
-                            class="btn btn-primary btn-sm">
-                        <i class="bi bi-upload"></i> Import
+                            class="btn btn-primary
+                                   btn-sm">
+                        <i class="bi bi-upload"></i>
+                        Import
                     </button>
                 </div>
             </form>
@@ -230,10 +257,18 @@
 
 {% block scripts %}
 <script>
+function openImportModal() {
+    const modal = new bootstrap.Modal(
+        document.getElementById('importModal')
+    );
+    modal.show();
+}
+
 document.querySelectorAll(
     '.progress-bar[data-width]'
 ).forEach(function(bar) {
-    bar.style.width = bar.getAttribute('data-width') + '%';
+    bar.style.width =
+        bar.getAttribute('data-width') + '%';
 });
 </script>
 {% endblock %}
