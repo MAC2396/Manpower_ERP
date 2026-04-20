@@ -35,10 +35,10 @@ def index():
     from app.models.client import Company
     from app.models.deployment import Deployment
 
-    companies  = Company.query.all()
+    companies = Company.query.all()
 
     # Get filter parameters
-    search     = request.args.get('search', '').strip()
+    search = request.args.get('search', '').strip()
     company_id = request.args.get('company_id', '')
     kyc_filter = request.args.get('kyc_filter', '')
 
@@ -87,12 +87,13 @@ def index():
         worker_company[w.id] = dep.company.name \
             if dep else '—'
 
+    # ✅ FIX: Define all_workers before using it
+    all_workers = Worker.query.all()  # ADD THIS LINE
+    
     # KYC stats
-    total_workers   = Worker.query.count()
-    kyc_complete    = sum(
-         1 for w in all_workers if w.kyc_complete()
-    )
-    kyc_pending     = total_workers - kyc_complete
+    total_workers = Worker.query.count()
+    kyc_complete = sum(1 for w in all_workers if w.kyc_complete())  # Now works
+    kyc_pending = total_workers - kyc_complete
 
     return render_template('workers/index.html',
                            workers=workers,
