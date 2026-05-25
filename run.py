@@ -9,7 +9,7 @@ if __name__ == '__main__':
     #app.run(debug=True)
     app.run(debug=False, host='0.0.0.0', port=5000)
 
-#cd C:\Users\Lenovo\manpower_payroll
+#cd D:\visual code apps\manpower_payroll
 #venv\Scripts\activate
 #py run.py
 
