@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block page_title %}Assign Salary Structure{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Assign Salary Structure to {{ worker.full_name }}</h5>
+        <a href="/workers/view/{{ worker.id }}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Employee
+        </a>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        <strong>Employee:</strong> {{ worker.full_name }} ({{ worker.employee_id }})<br>
+        <strong>Current Company:</strong> 
+        {% if worker.current_deployment %}
+            {{ worker.current_deployment.company.name }}
+        {% else %}
+            Not deployed
+        {% endif %}
+    </div>
+    
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Salary Structure *</label>
+                <select name="structure_id" class="form-select" required id="structureSelect">
+                    <option value="">Select Structure</option>
+                    {% for structure in structures %}
+                    <option value="{{ structure.id }}" 
+                        {% if existing and existing.structure_id == structure.id %}selected{% endif %}>
+                        {{ structure.company.name }} - {{ structure.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Joining Date *</label>
+                <input type="date" name="joining_date" class="form-control" 
+                       value="{% if existing %}{{ existing.joining_date.isoformat() }}{% else %}{{ worker.date_joined.isoformat() if worker.date_joined else '' }}{% endif %}" required>
+            </div>
+        </div>
+        
+        <h6 class="fw-semibold mt-3">Custom Component Values (Leave 0 to use structure defaults)</h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom Basic (₹)</label>
+                <input type="number" name="custom_basic" class="form-control" value="{{ existing.custom_basic if existing else 0 }}" step="100">
+                <small class="text-muted">Fixed amount, overrides percentage</small>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom DA (₹)</label>
+                <input type="number" name="custom_da" class="form-control" value="{{ existing.custom_da if existing else 0 }}" step="100">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom HRA (₹)</label>
+                <input type="number" name="custom_hra" class="form-control" value="{{ existing.custom_hra if existing else 0 }}" step="100">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom Conveyance (₹)</label>
+                <input type="number" name="custom_conveyance" class="form-control" value="{{ existing.custom_conveyance if existing else 0 }}" step="100">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom Medical (₹)</label>
+                <input type="number" name="custom_medical" class="form-control" value="{{ existing.custom_medical if existing else 0 }}" step="100">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Custom Special Allowance (₹)</label>
+                <input type="number" name="custom_special" class="form-control" value="{{ existing.custom_special if existing else 0 }}" step="100">
+            </div>
+        </div>
+        
+        <!-- Structure Preview -->
+        <div class="card mt-3">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">Structure Preview</h6>
+            </div>
+            <div class="card-body" id="structurePreview">
+                <p class="text-muted">Select a structure to see preview</p>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary mt-3">Assign Structure</button>
+        <a href="/workers/view/{{ worker.id }}" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+
+<script>
+document.getElementById('structureSelect').addEventListener('change', function() {
+    const structureId = this.value;
+    if (structureId) {
+        fetch(`/structure/preview/${structureId}`)
+            .then(response => response.json())
+            .then(data => {
+                let html = `
+                    <table class="table table-sm">
+                        <tr><th colspan="2">Salary Components (% of Gross)</th></tr>
+                        <tr><td>Basic Salary:</td><td>${data.basic_percent}%</td></tr>
+                        <tr><td>DA:</td><td>${data.da_percent}%</td></tr>
+                        <tr><td>HRA:</td><td>${data.hra_percent}%</td></tr>
+                        <tr><td>Conveyance:</td><td>${data.conveyance_percent}%</td></tr>
+                        <tr><td>Medical:</td><td>${data.medical_percent}%</td></tr>
+                        <tr><td>Special Allowance:</td><td>${data.special_allowance_percent}%</td></tr>
+                        <tr><th colspan="2" class="pt-2">EPF Configuration</th></tr>
+                        <tr><td>Calculation Base:</td><td>${data.epf_base}</td></tr>
+                        <tr><td>Employee PF:</td><td>${data.epf_employee_rate}%</td></tr>
+                        <tr><td>Employer PF:</td><td>${data.epf_employer_rate}%</td></tr>
+                        <tr><td>Max Limit:</td><td>₹${data.epf_max_limit}</td></tr>
+                        <tr><th colspan="2" class="pt-2">ESIC Configuration</th></tr>
+                        <tr><td>Employee ESIC:</td><td>${data.esic_employee_rate}%</td></tr>
+                        <tr><td>Employer ESIC:</td><td>${data.esic_employer_rate}%</td></tr>
+                        <tr><td>Max Limit:</td><td>₹${data.esic_max_limit}</td></tr>
+                    </table>
+                `;
+                document.getElementById('structurePreview').innerHTML = html;
+            });
+    } else {
+        document.getElementById('structurePreview').innerHTML = '<p class="text-muted">Select a structure to see preview</p>';
+    }
+});
+</script>
+
+{% endblock %}

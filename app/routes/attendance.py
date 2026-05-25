@@ -265,78 +265,117 @@ def download_template():
     )
 
 
-@attendance_bp.route('/attendance/import-excel',
-                     methods=['POST'])
+@attendance_bp.route('/attendance/import-excel', methods=['POST'])
 def import_excel():
     from openpyxl import load_workbook
     from app.models.worker import Worker
+    import re
 
-    month      = int(request.form['month'])
-    year       = int(request.form['year'])
+    # Get form data
+    month = int(request.form['month'])
+    year = int(request.form['year'])
     company_id = request.form.get('company_id', '')
-    file       = request.files.get('excel_file')
+    file = request.files.get('excel_file')
 
     if not file:
         flash('Please select an Excel file!', 'danger')
         return redirect(url_for('attendance.index'))
 
-    wb = load_workbook(file)
-    ws = wb.active
+    # Check if file is valid
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        flash('Invalid file format! Please upload .xlsx or .xls file only.', 'danger')
+        return redirect(url_for('attendance.index'))
 
-    days_in_month = calendar.monthrange(year, month)[1]
-    saved = 0
-    errors = []
+    try:
+        wb = load_workbook(file)
+        ws = wb.active
+        
+        # Try to read month/year from the template header (cell A1)
+        header_text = str(ws['A1'].value or '')
+        
+        # Extract month and year from header like "ATTENDANCE SHEET — March 2025"
+        month_match = re.search(r'([A-Za-z]+)\s+(\d{4})', header_text)
+        if month_match:
+            month_name = month_match.group(1)
+            year_from_file = int(month_match.group(2))
+            
+            # Convert month name to number
+            month_names = {
+                'January': 1, 'February': 2, 'March': 3, 'April': 4,
+                'May': 5, 'June': 6, 'July': 7, 'August': 8,
+                'September': 9, 'October': 10, 'November': 11, 'December': 12
+            }
+            
+            if month_name in month_names:
+                month = month_names[month_name]
+                year = year_from_file
+                flash(f'Using month/year from file: {month_name} {year}', 'info')
+        
+        days_in_month = calendar.monthrange(year, month)[1]
+        saved = 0
+        updated = 0
+        errors = []
 
-    for row in ws.iter_rows(min_row=3):
-        emp_id = str(row[0].value or '').strip()
-        if not emp_id:
-            continue
+        # Process rows (starting from row 3 as per template)
+        for row_num, row in enumerate(ws.iter_rows(min_row=3, values_only=False), start=3):
+            emp_id_cell = row[0]
+            emp_id = str(emp_id_cell.value or '').strip() if emp_id_cell else ''
+            
+            if not emp_id:
+                continue
 
-        # Find worker by employee_id
-        worker = Worker.query.filter_by(
-            employee_id=emp_id
-        ).first()
-        if not worker:
-            errors.append(f'Employee ID {emp_id} not found')
-            continue
+            # Find worker by employee_id
+            worker = Worker.query.filter_by(employee_id=emp_id).first()
+            if not worker:
+                errors.append(f'Row {row_num}: Employee ID "{emp_id}" not found')
+                continue
 
-        for d in range(1, days_in_month + 1):
-            col    = d + 2  # 0-indexed, columns A,B,C = 0,1,2
-            status = str(row[col].value or 'A').strip().upper()
+            # Process each day column (starting from column D = index 3)
+            for d in range(1, days_in_month + 1):
+                col_index = d + 2  # A=0, B=1, C=2, D=3 -> day 1
+                if col_index >= len(row):
+                    break
+                    
+                status_cell = row[col_index]
+                status = str(status_cell.value or 'A').strip().upper()
+                
+                # Map WO and PH to A for calculation
+                if status in ['WO', 'PH']:
+                    status = 'A'
+                if status not in ['P', 'A', 'H']:
+                    status = 'A'
 
-            # Map WO and PH to A for calculation
-            if status in ['WO', 'PH']:
-                status = 'A'
-            if status not in ['P', 'A', 'H']:
-                status = 'A'
-
-            att_date = date(year, month, d)
-            existing = Attendance.query.filter_by(
-                worker_id=worker.id,
-                date=att_date
-            ).first()
-            if existing:
-                existing.status = status
-            else:
-                db.session.add(Attendance(
+                att_date = date(year, month, d)
+                existing = Attendance.query.filter_by(
                     worker_id=worker.id,
-                    date=att_date,
-                    status=status
-                ))
-            saved += 1
+                    date=att_date
+                ).first()
+                
+                if existing:
+                    existing.status = status
+                    updated += 1
+                else:
+                    db.session.add(Attendance(
+                        worker_id=worker.id,
+                        date=att_date,
+                        status=status
+                    ))
+                    saved += 1
 
-    db.session.commit()
+        db.session.commit()
 
-    if errors:
-        flash(f'Imported with {len(errors)} errors: '
-              f'{", ".join(errors[:3])}', 'warning')
-    else:
-        flash(f'Attendance imported successfully! '
-              f'{saved} records saved.', 'success')
+        # Flash summary message
+        total = saved + updated
+        if errors:
+            flash(f'Import completed with {len(errors)} errors: {", ".join(errors[:3])}', 'warning')
+        else:
+            flash(f'Successfully imported {total} attendance records for {month}/{year}! (New: {saved}, Updated: {updated})', 'success')
 
-    return redirect(url_for('attendance.index',
-                            month=month, year=year,
-                            company_id=company_id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error importing file: {str(e)}', 'danger')
+
+    return redirect(url_for('attendance.index', month=month, year=year, company_id=company_id))
 
 
 @attendance_bp.route('/attendance/export-excel')

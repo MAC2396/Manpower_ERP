@@ -7,14 +7,14 @@ advance_bp = Blueprint('advance', __name__)
 @advance_bp.route('/advance')
 def index():
     from app import db
-    from app.models.salary import Advance
+    from app.models.advance import Advance
     from app.routes.auth import check_permission
     if not check_permission('advance', 'view'):
         flash('Access denied!', 'danger')
         from flask import redirect
         return redirect('/')
     advances = Advance.query.order_by(
-        Advance.date_given.desc()).all()
+        Advance.request_date.desc()).all()
     return render_template('advance/index.html',
                            advances=advances)
 
@@ -22,7 +22,7 @@ def index():
 @advance_bp.route('/advance/add', methods=['GET', 'POST'])
 def add():
     from app import db
-    from app.models.salary import Advance
+    from app.models.advance import Advance
     from app.models.client import Company
     from app.models.worker import Worker
 
@@ -62,7 +62,7 @@ def add():
 @advance_bp.route('/advance/delete/<int:id>')
 def delete(id):
     from app import db
-    from app.models.salary import Advance
+    from app.models.advance import Advance
     adv = Advance.query.get_or_404(id)
     if adv.is_deducted:
         flash('Cannot delete — advance already deducted from salary!',

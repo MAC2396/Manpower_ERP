@@ -1,179 +1,102 @@
-from app import db
+﻿from app import db
 from datetime import datetime
+
+class SalaryStructure(db.Model):
+    __tablename__ = 'salary_structures'
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    basic_percent = db.Column(db.Float, default=40)
+    da_percent = db.Column(db.Float, default=10)
+    hra_percent = db.Column(db.Float, default=15)
+    conveyance_percent = db.Column(db.Float, default=5)
+    medical_percent = db.Column(db.Float, default=5)
+    special_allowance_percent = db.Column(db.Float, default=25)
+    fixed_basic = db.Column(db.Float, default=0)
+    fixed_da = db.Column(db.Float, default=0)
+    fixed_hra = db.Column(db.Float, default=0)
+    fixed_conveyance = db.Column(db.Float, default=0)
+    fixed_medical = db.Column(db.Float, default=0)
+    fixed_special = db.Column(db.Float, default=0)
+    epf_calculation_base = db.Column(db.String(50), default='basic')
+    epf_custom_components = db.Column(db.String(200), default='')
+    epf_employee_rate = db.Column(db.Float, default=12)
+    epf_employer_rate = db.Column(db.Float, default=12)
+    epf_max_limit = db.Column(db.Float, default=15000)
+    esic_calculation_base = db.Column(db.String(50), default='basic')
+    esic_employee_rate = db.Column(db.Float, default=0.75)
+    esic_employer_rate = db.Column(db.Float, default=3.25)
+    esic_max_limit = db.Column(db.Float, default=21000)
+    experience_increments = db.Column(db.Text, default='')
+    professional_tax_enabled = db.Column(db.Boolean, default=True)
+    professional_tax_slab = db.Column(db.Text, default='')
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    company = db.relationship('Company', backref='salary_structures')
+
+class EmployeeSalaryDetail(db.Model):
+    __tablename__ = 'employee_salary_details'
+    id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
+    structure_id = db.Column(db.Integer, db.ForeignKey('salary_structures.id'), nullable=False)
+    custom_basic = db.Column(db.Float, default=0)
+    custom_da = db.Column(db.Float, default=0)
+    custom_hra = db.Column(db.Float, default=0)
+    custom_conveyance = db.Column(db.Float, default=0)
+    custom_medical = db.Column(db.Float, default=0)
+    custom_special = db.Column(db.Float, default=0)
+    custom_allowances = db.Column(db.Text, default='{}')
+    joining_date = db.Column(db.Date, nullable=False)
+    last_increment_date = db.Column(db.Date)
+    last_increment_percent = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    worker = db.relationship('Worker', backref='salary_detail')
+    structure = db.relationship('SalaryStructure', backref='employee_details')
 
 class Salary(db.Model):
     __tablename__ = 'salaries'
-
-    id               = db.Column(db.Integer, primary_key=True)
-    worker_id        = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
-    company_id       = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
-    month            = db.Column(db.Integer, nullable=False)
-    year             = db.Column(db.Integer, nullable=False)
-
-    # Earnings
-    basic            = db.Column(db.Float, default=0)
-    da               = db.Column(db.Float, default=0)
-    hra              = db.Column(db.Float, default=0)
-    special_allowance = db.Column(db.Float, default=0)
-    overtime         = db.Column(db.Float, default=0)
-    gross            = db.Column(db.Float, default=0)
-
-    # Deductions
-    pf_employee      = db.Column(db.Float, default=0)
-    esic_employee    = db.Column(db.Float, default=0)
-    advance          = db.Column(db.Float, default=0)
-    other_deductions = db.Column(db.Float, default=0)
-    total_deductions = db.Column(db.Float, default=0)
-
-    # Net Pay
-    net_pay          = db.Column(db.Float, default=0)
-    days_present     = db.Column(db.Integer, default=0)
-    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships — backref names must be unique across all models
-    worker  = db.relationship('Worker',  backref='sal_worker',  lazy=True)
-    company = db.relationship('Company', backref='sal_company', lazy=True)
-
-    def __repr__(self):
-        return f'<Salary Worker:{self.worker_id} {self.month}/{self.year}>'
-
+    id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    gross_salary = db.Column(db.Float, default=0)
+    net_salary = db.Column(db.Float, default=0)
+    status = db.Column(db.String(20), default='generated')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    worker = db.relationship('Worker', backref='salaries')
 
 class Compliance(db.Model):
     __tablename__ = 'compliance'
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    epf_submitted = db.Column(db.Boolean, default=False)
+    esic_submitted = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    company = db.relationship('Company', backref='compliance_records')
 
-    id             = db.Column(db.Integer, primary_key=True)
-    worker_id      = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
-    company_id     = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
-    month          = db.Column(db.Integer, nullable=False)
-    year           = db.Column(db.Integer, nullable=False)
-
-    pf_employee    = db.Column(db.Float, default=0)
-    pf_employer    = db.Column(db.Float, default=0)
-    esic_employee  = db.Column(db.Float, default=0)
-    esic_employer  = db.Column(db.Float, default=0)
-    bonus          = db.Column(db.Float, default=0)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships — backref names must be unique across all models
-    worker  = db.relationship('Worker',  backref='comp_worker',  lazy=True)
-    company = db.relationship('Company', backref='comp_company', lazy=True)
-
-    def __repr__(self):
-        return f'<Compliance Worker:{self.worker_id} {self.month}/{self.year}>'
-    
-class SalaryStructure(db.Model):
-    __tablename__: str = 'salary_structures'
-
-    id              = db.Column(db.Integer, primary_key=True)
-    company_id      = db.Column(db.Integer,
-                        db.ForeignKey('companies.id'),
-                        nullable=True)
-    post            = db.Column(db.String(100), nullable=False)
-
-    # Basic Salary
-    basic           = db.Column(db.Float, default=0)
-
-    # DA — can be percentage or fixed amount
-    da_type         = db.Column(db.String(10), default='percent')
-    da_value        = db.Column(db.Float, default=10)
-
-    # HRA — can be percentage or fixed amount
-    hra_type        = db.Column(db.String(10), default='percent')
-    hra_value       = db.Column(db.Float, default=20)
-
-    # Special Allowance — can be percentage or fixed
-    special_type    = db.Column(db.String(10), default='percent')
-    special_value   = db.Column(db.Float, default=5)
-
-    # Bonus
-    bonus_type      = db.Column(db.String(10), default='percent')
-    bonus_value     = db.Column(db.Float, default=0)
-
-    # Statutory
-    epf_applicable  = db.Column(db.Boolean, default=True)
-    esic_applicable = db.Column(db.Boolean, default=True)
-
-    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
-
-    company = db.relationship('Company',
-                backref='salary_structures', lazy=True)
-
-    def calc_component(self, ctype, cvalue, basic):
-        if ctype == 'percent':
-            return round(basic * cvalue / 100, 2)
-        else:
-            return round(cvalue, 2)
-
-    def __repr__(self):
-        return f'<SalaryStructure {self.post}>'
-
-class Advance(db.Model):
-    __tablename__: str = 'advances'
-
-    id              = db.Column(db.Integer, primary_key=True)
-    worker_id       = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
-    company_id      = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
-    amount          = db.Column(db.Float, nullable=False)
-    date_given      = db.Column(db.Date, nullable=False)
-    reason          = db.Column(db.String(255))
-    month           = db.Column(db.Integer)   # month to deduct from
-    year            = db.Column(db.Integer)   # year to deduct from
-    is_deducted     = db.Column(db.Boolean, default=False)
-    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships
-    worker  = db.relationship('Worker',  backref='advances', lazy=True)
-    company = db.relationship('Company', backref='advances', lazy=True)
-
-    def __repr__(self):
-        return f'<Advance Worker:{self.worker_id} ₹{self.amount}>'
-    
 class SalaryPayment(db.Model):
-    __tablename__: str = 'salary_payments'
-
-    id           = db.Column(db.Integer, primary_key=True)
-    company_id   = db.Column(db.Integer,
-                             db.ForeignKey('companies.id'),
-                             nullable=False)
-    month        = db.Column(db.Integer, nullable=False)
-    year         = db.Column(db.Integer, nullable=False)
-    total_amount = db.Column(db.Float, default=0)
-    total_workers = db.Column(db.Integer, default=0)
-    paid_by      = db.Column(db.Integer,
-                             db.ForeignKey('users.id'),
-                             nullable=True)
-    paid_at      = db.Column(db.DateTime, nullable=True)
-    status       = db.Column(db.String(20), default='pending')
-    notes        = db.Column(db.Text)
-    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
-
-    company  = db.relationship('Company',
-                               backref='payments', lazy=True)
-
-    def __repr__(self):
-        return f'<Payment {self.company_id} {self.month}/{self.year}>'
+    __tablename__ = 'salary_payments'
     
-class SalaryComponent(db.Model):
-    __tablename__: str = 'salary_components'
-
-    id           = db.Column(db.Integer,
-                             primary_key=True)
-    structure_id = db.Column(db.Integer,
-                             db.ForeignKey(
-                                 'salary_structures.id'),
-                             nullable=False)
-    name         = db.Column(db.String(100),
-                             nullable=False)
-    comp_type    = db.Column(db.String(10),
-                             default='percent')
-    value        = db.Column(db.Float, default=0)
-    created_at   = db.Column(db.DateTime,
-                             default=datetime.utcnow)
-
-    structure = db.relationship('SalaryStructure',
-                                backref='custom_components',
-                                lazy=True)
-
-    def __repr__(self):
-        return f'<Component {self.name}>'
+    id = db.Column(db.Integer, primary_key=True)
+    salary_id = db.Column(db.Integer, db.ForeignKey('salaries.id'), nullable=False)
+    payment_date = db.Column(db.Date, nullable=False)
+    payment_mode = db.Column(db.String(50), default='bank_transfer')  # cash, cheque, bank_transfer
+    transaction_id = db.Column(db.String(100), nullable=True)
+    bank_name = db.Column(db.String(100), nullable=True)
+    cheque_number = db.Column(db.String(50), nullable=True)
+    amount = db.Column(db.Float, nullable=False)
+    remarks = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default='completed')  # pending, completed, failed
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Relationships
+    salary = db.relationship('Salary', backref='payments')
+    creator = db.relationship('User', backref='salary_payments')
+    
+    def __repr__(self):
+        return f'<SalaryPayment {self.id} - {self.amount}>'

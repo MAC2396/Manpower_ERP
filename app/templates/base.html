@@ -240,16 +240,54 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* ── Sidebar ── */
+        /* ── Sidebar with proper scrolling ── */
         .sidebar {
             width: 220px;
+            height: 100vh;           /* Fixed height */
             min-height: 100vh;
             background: var(--sb-bg);
             position: fixed;
-            top: 0; left: 0;
-            overflow-y: auto;
+            top: 0; 
+            left: 0;
+            overflow-y: auto;        /* Enable vertical scrolling */
+            overflow-x: hidden;      /* Hide horizontal scroll */
             z-index: 100;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* Custom scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--sb-dark);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--sb-accent);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--sb-hover);
+        }
+
+        /* Firefox scrollbar */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: var(--sb-accent) var(--sb-dark);
+        }
+
+        /* Sidebar content wrapper */
+        .sidebar .sidebar-content {
+            flex: 1;
+            padding-bottom: 20px;
+        }
+
+        /* Brand stays at top */
         .sidebar .brand {
             padding: 16px 15px;
             font-size: 15px;
@@ -260,7 +298,18 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
+
+        /* Navigation area - ensures scrolling works */
+        .sidebar nav {
+            flex: 1;
+            overflow-y: visible;
+        }
+
+        /* Ensure nav links wrap properly */
         .sidebar .nav-link {
             color: var(--sb-text);
             padding: 10px 16px;
@@ -271,7 +320,10 @@
             text-decoration: none;
             font-size: 13px;
             transition: all 0.2s;
+            white-space: normal;      /* Allow text wrapping */
+            word-wrap: break-word;    /* Break long words */
         }
+        
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
             color: #fff;

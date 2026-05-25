@@ -27,7 +27,7 @@ def index():
     query = Salary.query.filter_by(month=month, year=year)
     if company_id:
         query = query.filter_by(company_id=int(company_id))
-    salaries = query.order_by(Salary.company_id,
+    salaries = query.order_by(Salary.worker_id,
                               Salary.worker_id).all()
 
     # Summary stats

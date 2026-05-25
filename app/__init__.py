@@ -59,19 +59,18 @@ def create_app():
             return redirect(url_for('auth.login'))
 
         from app.models.client import Company, Requirement
-        from app.models.worker import Worker
-        from app.models.salary import Advance
-        from app.models.deployment import Deployment
-        from app.models.deployment_request import \
-            DeploymentRequest
+        from app.models.worker import Worker, FamilyMember
+        from app.models.salary import SalaryStructure, EmployeeSalaryDetail
+        from app.models.deployment import Deployment, DeploymentRequest
+        from app.models.attendance import Attendance
+        from app.models.advance import Advance  # ADD THIS
         from app.models.user import User
         from app.routes.auth import check_permission
         from datetime import date, datetime
 
         current_month = date.today().month
         current_year  = date.today().year
-        current_user  = User.query.get(
-                            session['user_id'])
+        current_user  = User.query.get(session['user_id'])
         now           = datetime.now()
 
         # Cache key per user per month

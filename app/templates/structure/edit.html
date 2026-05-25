@@ -1,47 +1,180 @@
 {% extends 'base.html' %}
 {% block page_title %}Edit Salary Structure{% endblock %}
+
 {% block content %}
 
-<div class="content-card" style="max-width:650px">
-    <h6 class="fw-semibold mb-4">Edit Salary Structure — {{ s.post }}</h6>
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-semibold mb-0">Edit Salary Structure: {{ structure.name }}</h5>
+        <a href="/structure" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    
     <form method="POST">
-        <div class="row g-3">
-            <div class="col-md-12">
-                <label class="form-label">Post / Designation *</label>
-                <input type="text" name="post" class="form-control"
-                       value="{{ s.post }}" required>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Company *</label>
+                <select name="company_id" class="form-select" required>
+                    <option value="">Select Company</option>
+                    {% for company in companies %}
+                    <option value="{{ company.id }}" {% if structure.company_id == company.id %}selected{% endif %}>
+                        {{ company.name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Basic Salary (₹) *</label>
-                <input type="number" name="basic" class="form-control"
-                       step="0.01" value="{{ s.basic }}" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">DA %</label>
-                <input type="number" name="da_percent" class="form-control"
-                       step="0.01" value="{{ s.da_percent }}">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">HRA %</label>
-                <input type="number" name="hra_percent" class="form-control"
-                       step="0.01" value="{{ s.hra_percent }}">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Special Allowance %</label>
-                <input type="number" name="special_percent"
-                       class="form-control"
-                       step="0.01" value="{{ s.special_percent }}">
-            </div>
-            <div class="col-12 mt-2">
-                <button type="submit" class="btn btn-primary">
-                    Update Structure
-                </button>
-                <a href="/structure" class="btn btn-secondary ms-2">
-                    Cancel
-                </a>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Structure Name *</label>
+                <input type="text" name="name" class="form-control" value="{{ structure.name }}" required>
             </div>
         </div>
+        
+        <h6 class="fw-semibold mt-3">Salary Components (% of Gross)</h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Basic Salary (%)</label>
+                <input type="number" name="basic_percent" class="form-control" value="{{ structure.basic_percent }}" step="0.5">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">DA (%)</label>
+                <input type="number" name="da_percent" class="form-control" value="{{ structure.da_percent }}" step="0.5">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">HRA (%)</label>
+                <input type="number" name="hra_percent" class="form-control" value="{{ structure.hra_percent }}" step="0.5">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Conveyance (%)</label>
+                <input type="number" name="conveyance_percent" class="form-control" value="{{ structure.conveyance_percent }}" step="0.5">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Medical Allowance (%)</label>
+                <input type="number" name="medical_percent" class="form-control" value="{{ structure.medical_percent }}" step="0.5">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Special Allowance (%)</label>
+                <input type="number" name="special_allowance_percent" class="form-control" value="{{ structure.special_allowance_percent }}" step="0.5">
+            </div>
+        </div>
+        
+        <h6 class="fw-semibold mt-3">EPF Configuration</h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Calculation Base</label>
+                <select name="epf_calculation_base" class="form-select">
+                    <option value="basic" {% if structure.epf_calculation_base == 'basic' %}selected{% endif %}>Basic Only</option>
+                    <option value="basic_da" {% if structure.epf_calculation_base == 'basic_da' %}selected{% endif %}>Basic + DA</option>
+                    <option value="basic_da_allowances" {% if structure.epf_calculation_base == 'basic_da_allowances' %}selected{% endif %}>Basic + DA + All Allowances</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Employee Rate (%)</label>
+                <input type="number" name="epf_employee_rate" class="form-control" value="{{ structure.epf_employee_rate }}" step="0.5">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Employer Rate (%)</label>
+                <input type="number" name="epf_employer_rate" class="form-control" value="{{ structure.epf_employer_rate }}" step="0.5">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label">Max Limit (₹)</label>
+                <input type="number" name="epf_max_limit" class="form-control" value="{{ structure.epf_max_limit }}">
+            </div>
+        </div>
+        
+        <h6 class="fw-semibold mt-3">ESIC Configuration</h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label class="form-label">Calculation Base</label>
+                <select name="esic_calculation_base" class="form-select">
+                    <option value="basic" {% if structure.esic_calculation_base == 'basic' %}selected{% endif %}>Basic Only</option>
+                    <option value="basic_da" {% if structure.esic_calculation_base == 'basic_da' %}selected{% endif %}>Basic + DA</option>
+                    <option value="basic_da_allowances" {% if structure.esic_calculation_base == 'basic_da_allowances' %}selected{% endif %}>Basic + DA + All Allowances</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Employee Rate (%)</label>
+                <input type="number" name="esic_employee_rate" class="form-control" value="{{ structure.esic_employee_rate }}" step="0.25">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Employer Rate (%)</label>
+                <input type="number" name="esic_employer_rate" class="form-control" value="{{ structure.esic_employer_rate }}" step="0.25">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label">Max Limit (₹)</label>
+                <input type="number" name="esic_max_limit" class="form-control" value="{{ structure.esic_max_limit }}">
+            </div>
+        </div>
+        
+        <h6 class="fw-semibold mt-3">Experience-Based Increments</h6>
+        <div id="increments-container">
+            {% if exp_increments %}
+                {% for inc in exp_increments %}
+                <div class="row mb-2 increment-row">
+                    <div class="col-md-4">
+                        <input type="number" name="exp_years[]" class="form-control" value="{{ inc.years }}" placeholder="Years of Service">
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" name="exp_increases[]" class="form-control" value="{{ inc.increase }}" placeholder="Increase (%)">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="row mb-2 increment-row">
+                <div class="col-md-4">
+                    <input type="number" name="exp_years[]" class="form-control" placeholder="Years of Service">
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="exp_increases[]" class="form-control" placeholder="Increase (%)">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm mb-3" onclick="addIncrementRow()">+ Add Increment Rule</button>
+        
+        <div class="form-check mb-3">
+            <input type="checkbox" name="professional_tax_enabled" class="form-check-input" {% if structure.professional_tax_enabled %}checked{% endif %}>
+            <label class="form-check-label">Enable Professional Tax Deduction</label>
+        </div>
+        
+        <div class="form-check mb-3">
+            <input type="checkbox" name="is_active" class="form-check-input" {% if structure.is_active %}checked{% endif %}>
+            <label class="form-check-label">Active</label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Structure</button>
+        <a href="/structure" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
+
+<script>
+function addIncrementRow() {
+    const container = document.getElementById('increments-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-2 increment-row';
+    newRow.innerHTML = `
+        <div class="col-md-4">
+            <input type="number" name="exp_years[]" class="form-control" placeholder="Years of Service">
+        </div>
+        <div class="col-md-4">
+            <input type="number" name="exp_increases[]" class="form-control" placeholder="Increase (%)">
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Remove</button>
+        </div>
+    `;
+    container.appendChild(newRow);
+}
+
+function removeRow(btn) {
+    btn.closest('.increment-row').remove();
+}
+</script>
 
 {% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block page_title %}Employee Details - {{ worker.full_name }}{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-semibold mb-0">Employee Details: {{ worker.full_name }}</h5>
+        <a href="/letters" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    
+    <!-- Employee Basic Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr><th width="35%">Employee ID</th><td><code>{{ worker.employee_id }}</code></td></tr>
+                        <tr><th>Full Name</th><td>{{ worker.full_name }}</td></tr>
+                        <tr><th>Father's Name</th><td>{{ worker.father_name or '—' }}</td></tr>
+                        <tr><th>Date of Birth</th><td>{{ worker.date_of_birth.strftime('%d-%m-%Y') if worker.date_of_birth else '—' }}</td></tr>
+                        <tr><th>Gender</th><td>{{ worker.gender or '—' }}</td></tr>
+                        <tr><th>Mobile</th><td>{{ worker.mobile or '—' }}</td></tr>
+                        <tr><th>Address</th><td>{{ worker.address or '—' }}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Current Employment</h6>
+                </div>
+                <div class="card-body">
+                    {% if current_deployment %}
+                    <table class="table table-sm">
+                        <tr><th width="35%">Company</th><td>{{ current_deployment.company.name }}</td></tr>
+                        <tr><th>Post</th><td>{{ current_deployment.post }}</td></tr>
+                        <tr><th>From Date</th><td>{{ current_deployment.date_from.strftime('%d-%m-%Y') }}</td></tr>
+                        <tr><th>Status</th><td><span class="badge bg-success">Active</span></td></tr>
+                    </table>
+                    {% else %}
+                    <p class="text-muted mb-0">Not currently deployed</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Letter Generation Buttons -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">Generate Documents</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <a href="/letters/generate/joining/{{ worker.id }}" class="btn btn-outline-primary w-100" target="_blank">
+                        <i class="bi bi-file-text"></i> Joining Letter
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/letters/generate/experience/{{ worker.id }}" class="btn btn-outline-success w-100" target="_blank">
+                        <i class="bi bi-award"></i> Experience Letter
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/letters/generate/all-salaries/{{ worker.id }}" class="btn btn-outline-info w-100" target="_blank">
+                        <i class="bi bi-cash-stack"></i> Salary History
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-warning dropdown-toggle w-100" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-text"></i> Form 16 / Annual
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for y in [2023, 2024, 2025, 2026] %}
+                            <li><a class="dropdown-item" href="/letters/generate/form16/{{ worker.id }}/{{ y }}" target="_blank">
+                                Form 16 - FY {{ y }}-{{ y+1 }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="/letters/generate/salary-statement/{{ worker.id }}/{{ y }}" target="_blank">
+                                Annual Salary Statement - {{ y }}
+                            </a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Salary History -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">Salary History ({{ current_year }})</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>Month</th><th>Gross Salary</th><th>Net Salary</th><th>TDS</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for salary in salary_history %}
+                        <tr>
+                            <td>{{ MONTH_NAMES[salary.month] }} {{ salary.year }}</td>
+                            <td>₹{{ "%.2f"|format(salary.gross_salary or 0) }}</td>
+                            <td>₹{{ "%.2f"|format(salary.net_salary or 0) }}</td>
+                            <td>₹{{ "%.2f"|format(salary.tds_deduction or 0) }}</td>
+                            <td>
+                                <a href="/letters/generate/salary-statement/{{ worker.id }}/{{ salary.year }}" class="btn btn-sm btn-link">View Yearly</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted">No salary records found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance Summary -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">Attendance Summary ({{ current_year }})</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>Month</th><th>Present</th><th>Absent</th><th>Half Day</th><th>Attendance %</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendance_summary %}
+                        <tr>
+                            <td>{{ att.month_name }}</td>
+                            <td><span class="badge bg-success">{{ att.present }}</span></td>
+                            <td><span class="badge bg-danger">{{ att.absent }}</span></td>
+                            <td><span class="badge bg-warning">{{ att.halfday }}</span></td>
+                            <td>
+                                <div class="progress" style="height: 5px; width: 100px;">
+                                    <div class="progress-bar" style="width: {{ att.attendance_percent }}%"></div>
+                                </div>
+                                <small>{{ att.attendance_percent }}%</small>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted">No attendance records found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

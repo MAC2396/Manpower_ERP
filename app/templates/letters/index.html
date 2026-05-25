@@ -1,76 +1,106 @@
 {% extends 'base.html' %}
-{% block page_title %}Letters{% endblock %}
+{% block page_title %}Letters & Documents{% endblock %}
+
 {% block content %}
 
 <div class="content-card">
-    <h6 class="fw-semibold mb-4">
-        <i class="bi bi-file-earmark-text text-primary"></i>
-        Generate Letters
-    </h6>
-
+    <h5 class="fw-semibold mb-3">Generate Letters & Documents</h5>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">Filter Employees</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="/letters" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Employee ID / Name</label>
+                    <input type="text" name="employee_id" class="form-control" 
+                           placeholder="Search by ID or Name" value="{{ selected_employee }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Company</label>
+                    <select name="company_id" class="form-select">
+                        <option value="">All Companies</option>
+                        {% for company in companies %}
+                        <option value="{{ company.id }}" {% if selected_company|int == company.id %}selected{% endif %}>
+                            {{ company.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Post</label>
+                    <select name="post" class="form-select">
+                        <option value="">All Posts</option>
+                        {% for post in post_list %}
+                        <option value="{{ post }}" {% if selected_post == post %}selected{% endif %}>
+                            {{ post }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Employees List -->
+    <h6 class="fw-semibold mb-3">Select Employee</h6>
     <div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Emp ID</th>
-                <th>Employee Name</th>
-                <th>Post</th>
-                <th>Company</th>
-                <th>Joining Date</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for w in workers %}
-            {% set dep = w.deployments|
-                         selectattr('is_active','equalto',true)
-                         |first if w.deployments else none %}
-            <tr>
-                <td>
-                    <code style="font-size:11px">
-                        {{ w.employee_id or
-                           'EMP%04d'|format(w.id) }}
-                    </code>
-                </td>
-                <td class="fw-semibold">
-                    {{ w.full_name }}
-                </td>
-                <td>{{ w.post or '—' }}</td>
-                <td>
-                    {{ dep.company.name
-                       if dep else '—' }}
-                </td>
-                <td>
-                    {{ dep.date_from.strftime('%d/%m/%Y')
-                       if dep else '—' }}
-                </td>
-                <td class="text-center">
-                    <a href="/letters/joining/{{ w.id }}"
-                       class="btn btn-primary btn-sm"
-                       target="_blank">
-                        <i class="bi bi-file-earmark-plus">
-                        </i>
-                        Joining Letter
-                    </a>
-                    <a href="/letters/experience/{{ w.id }}"
-                       class="btn btn-success btn-sm"
-                       target="_blank">
-                        <i class="bi bi-file-earmark-check">
-                        </i>
-                        Experience Letter
-                    </a>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6"
-                    class="text-center text-muted py-4">
-                    No employees found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Current Company</th>
+                    <th>Post</th>
+                    <th>Joining Date</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in workers %}
+                <tr>
+                    <td><code>{{ worker.employee_id }}</code></td>
+                    <td>{{ worker.full_name }}</td>
+                    <td>
+                        {% if worker.current_deployment %}
+                            {{ worker.current_deployment.company.name }}
+                        {% else %}
+                            <span class="text-muted">Not Deployed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if worker.current_deployment %}
+                            {{ worker.current_deployment.post }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ worker.date_joined.strftime('%d-%m-%Y') if worker.date_joined else '—' }}
+                    </td>
+                    <td class="text-center">
+                        <a href="/letters/employee/{{ worker.id }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        No employees found. Adjust filters or add workers first.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
 {% endblock %}

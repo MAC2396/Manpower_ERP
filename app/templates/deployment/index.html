@@ -2,85 +2,254 @@
 {% block page_title %}Deployment Tracker{% endblock %}
 {% block content %}
 
-<div class="d-flex gap-2 mb-4">
+<div class="d-flex gap-2 mb-4 flex-wrap">
     <a href="/deployment/add-requirement" class="btn btn-primary btn-sm">
         <i class="bi bi-plus-circle"></i> Add Requirement
     </a>
     <a href="/deployment/add" class="btn btn-success btn-sm">
-        <i class="bi bi-person-plus"></i> Deploy Worker
+        <i class="bi bi-person-plus"></i> Deploy Employee
+    </a>
+    <a href="/deployment/bulk-add" class="btn btn-info btn-sm text-white">
+        <i class="bi bi-people-fill"></i> Bulk Deploy
     </a>
 </div>
-<div class="d-flex gap-2 mb-4 flex-wrap">
-    <a href="/deployment/add-requirement"
-       class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-circle"></i>
-        Add Requirement
-    </a>
-    <a href="/deployment/add"
-       class="btn btn-success btn-sm">
-        <i class="bi bi-person-plus"></i>
-        Deploy Employee
-    </a>
-    <a href="/deployment/bulk-add"
-       class="btn btn-info btn-sm text-white">
-        <i class="bi bi-people-fill"></i>
-        Bulk Deploy
-    </a>
+
+<!-- Filter Section with Clear Button -->
+<div class="content-card mb-4">
+    <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Filter Requirements</h6>
+            {% if selected_company or selected_month or selected_year or selected_post %}
+            <a href="/deployment" class="btn btn-danger btn-sm">
+                <i class="bi bi-x-circle"></i> Clear All Filters
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="GET" action="/deployment" id="filterForm">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Company</label>
+                        <select name="company_id" class="form-select" id="companyFilter">
+                            <option value="">All Companies</option>
+                            {% for company in companies %}
+                            <option value="{{ company.id }}" {% if selected_company|int == company.id %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label">Post</label>
+                        <select name="post" class="form-select" id="postFilter">
+                            <option value="">All Posts</option>
+                            {% for post in post_list %}
+                            <option value="{{ post }}" {% if selected_post == post %}selected{% endif %}>
+                                {{ post }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label">Month</label>
+                        <select name="month" class="form-select" id="monthFilter">
+                            <option value="">All Months</option>
+                            {% for m in range(1, 13) %}
+                            <option value="{{ m }}" {% if selected_month|int == m %}selected{% endif %}>
+                                {{ m }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label">Year</label>
+                        <select name="year" class="form-select" id="yearFilter">
+                            <option value="">All Years</option>
+                            {% for y in [2024, 2025, 2026, 2027] %}
+                            <option value="{{ y }}" {% if selected_year|int == y %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 mb-2 align-self-end">
+                        <button type="button" class="btn btn-primary w-100" onclick="applyFilters()">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                    </div>
+                    <div class="col-md-1 mb-2 align-self-end">
+                        <a href="/deployment" class="btn btn-secondary w-100" title="Reset all filters">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Active Filter Tags -->
+{% if selected_company or selected_month or selected_year or selected_post %}
+<div class="mb-3">
+    <span class="text-muted">Active Filters:</span>
+    {% if selected_company %}
+    <span class="badge bg-primary ms-1">
+        Company: {{ companies|selectattr('id', 'equalto', selected_company|int)|map(attribute='name')|first }}
+        <a href="#" onclick="removeFilter('company_id')" class="text-white ms-1" style="text-decoration: none;">✖</a>
+    </span>
+    {% endif %}
+    {% if selected_post %}
+    <span class="badge bg-primary ms-1">
+        Post: {{ selected_post }}
+        <a href="#" onclick="removeFilter('post')" class="text-white ms-1" style="text-decoration: none;">✖</a>
+    </span>
+    {% endif %}
+    {% if selected_month %}
+    <span class="badge bg-primary ms-1">
+        Month: {{ selected_month }}
+        <a href="#" onclick="removeFilter('month')" class="text-white ms-1" style="text-decoration: none;">✖</a>
+    </span>
+    {% endif %}
+    {% if selected_year %}
+    <span class="badge bg-primary ms-1">
+        Year: {{ selected_year }}
+        <a href="#" onclick="removeFilter('year')" class="text-white ms-1" style="text-decoration: none;">✖</a>
+    </span>
+    {% endif %}
+    <a href="/deployment" class="btn btn-link btn-sm p-0 ms-2">Clear All</a>
+</div>
+{% endif %}
+
+<!-- Summary Statistics Cards -->
+<div class="row mb-4 stat-row">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card" style="border-left-color: #1a237e;">
+            <div class="label">Total Requirements</div>
+            <div class="number">{{ req_data|length }}</div>
+            <small class="text-muted">Active requirements</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card" style="border-left-color: #ff9800;">
+            <div class="label">Short Positions</div>
+            <div class="number">{{ req_data|selectattr('status', 'equalto', 'short')|list|length }}</div>
+            <small class="text-muted">Need deployment</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card" style="border-left-color: #4caf50;">
+            <div class="label">Matched Positions</div>
+            <div class="number">{{ req_data|selectattr('status', 'equalto', 'ok')|list|length }}</div>
+            <small class="text-muted">Fully deployed</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card" style="border-left-color: #00bcd4;">
+            <div class="label">Total Workers Needed</div>
+            <div class="number">{{ req_data|sum(attribute='req.required_count') }}</div>
+            <small class="text-muted">Across all requirements</small>
+        </div>
+    </div>
 </div>
 
 <!-- Requirement vs Deployed Table -->
 <div class="content-card">
     <h6 class="fw-semibold mb-3">Manpower Requirement vs Deployed</h6>
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Company</th>
-                <th>Post</th>
-                <th>Month/Year</th>
-                <th>Shift</th>
-                <th class="text-center">Required</th>
-                <th class="text-center">Deployed</th>
-                <th class="text-center">Difference</th>
-                <th class="text-center">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in req_data %}
-            <tr>
-                <td>{{ d.req.company.name }}</td>
-                <td>{{ d.req.post }}</td>
-                <td>{{ '%02d' % d.req.month }}/{{ d.req.year }}</td>
-                <td>{{ d.req.shift }}</td>
-                <td class="text-center fw-semibold">{{ d.req.required_count }}</td>
-                <td class="text-center fw-semibold">{{ d.deployed }}</td>
-                <td class="text-center">
-                    {% if d.diff == 0 %}
-                        <span class="text-success fw-semibold">0</span>
-                    {% elif d.diff < 0 %}
-                        <span class="text-danger fw-semibold">{{ d.diff }}</span>
-                    {% else %}
-                        <span class="text-warning fw-semibold">+{{ d.diff }}</span>
-                    {% endif %}
-                </td>
-                <td class="text-center">
-                    {% if d.status == 'ok' %}
-                        <span class="badge bg-success">Matched</span>
-                    {% elif d.status == 'short' %}
-                        <span class="badge bg-danger">Short</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">Excess</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="8" class="text-center text-muted py-4">
-                    No requirements added yet.
-                    <a href="/deployment/add-requirement">Add one</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Post</th>
+                    <th>Month/Year</th>
+                    <th>Shift</th>
+                    <th class="text-center">Required</th>
+                    <th class="text-center">Deployed</th>
+                    <th class="text-center">Difference</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in req_data %}
+                <tr>
+                    <td>{{ d.req.company.name }}</td>
+                    <td>{{ d.req.post }}</td>
+                    <td>{{ '%02d' % d.req.month }}/{{ d.req.year }}</td>
+                    <td>{{ d.req.shift }}</td>
+                    <td class="text-center fw-semibold">{{ d.req.required_count }}</td>
+                    <td class="text-center fw-semibold">{{ d.deployed }}</td>
+                    <td class="text-center">
+                        {% if d.diff == 0 %}
+                            <span class="text-success fw-semibold">0</span>
+                        {% elif d.diff < 0 %}
+                            <span class="text-danger fw-semibold">{{ d.diff }}</span>
+                        {% else %}
+                            <span class="text-warning fw-semibold">+{{ d.diff }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if d.status == 'ok' %}
+                            <span class="badge bg-success">Matched</span>
+                        {% elif d.status == 'short' %}
+                            <span class="badge bg-danger">Short</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Excess</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="/deployment/add?company_id={{ d.req.company_id }}&post={{ d.req.post }}" 
+                           class="btn btn-sm btn-outline-success" title="Deploy Worker">
+                            <i class="bi bi-person-plus"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        No requirements found.
+                        <a href="/deployment/add-requirement">Add one</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<script>
+// Apply all filters
+function applyFilters() {
+    const companyId = document.getElementById('companyFilter').value;
+    const post = document.getElementById('postFilter').value;
+    const month = document.getElementById('monthFilter').value;
+    const year = document.getElementById('yearFilter').value;
+    
+    let url = '/deployment?';
+    const params = [];
+    
+    if (companyId) params.push('company_id=' + companyId);
+    if (post) params.push('post=' + encodeURIComponent(post));
+    if (month) params.push('month=' + month);
+    if (year) params.push('year=' + year);
+    
+    window.location.href = url + params.join('&');
+}
+
+// Remove individual filter
+function removeFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    window.location.href = url.toString();
+}
+
+// Auto-submit when dropdown changes (optional - comment out if you prefer Apply button)
+document.getElementById('companyFilter')?.addEventListener('change', applyFilters);
+document.getElementById('postFilter')?.addEventListener('change', applyFilters);
+document.getElementById('monthFilter')?.addEventListener('change', applyFilters);
+document.getElementById('yearFilter')?.addEventListener('change', applyFilters);
+</script>
+
 {% endblock %}
